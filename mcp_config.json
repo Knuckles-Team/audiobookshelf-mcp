@@ -1,0 +1,22 @@
+{
+  "mcpServers": {
+    "audiobookshelf-mcp": {
+      "command": "uv",
+      "args": [
+        "run",
+        "audiobookshelf-mcp"
+      ],
+      "env": {
+        "AUDIOBOOKSHELF_URL": "<YOUR_AUDIOBOOKSHELF_URL>",
+        "AUDIOBOOKSHELF_TOKEN": "<YOUR_AUDIOBOOKSHELF_TOKEN>",
+        "AUDIOBOOKSHELF_SSL_VERIFY": "<YOUR_AUDIOBOOKSHELF_SSL_VERIFY>",
+        "LIBRARIESTOOL": "True",
+        "AUTHORSTOOL": "True",
+        "SERIESTOOL": "True",
+        "PODCASTSTOOL": "True",
+        "EMAILTOOL": "True",
+        "NOTIFICATIONTOOL": "True"
+      }
+    }
+  }
+}
