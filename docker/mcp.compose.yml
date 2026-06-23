@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   audiobookshelf-mcp-mcp:
-    image: knucklessg1/audiobookshelf-mcp:latest
+    image: knucklessg1/audiobookshelf-mcp:mcp
     container_name: audiobookshelf-mcp-mcp
     hostname: audiobookshelf-mcp-mcp
     restart: always
