@@ -57,6 +57,8 @@ domains can be toggled on or off with the listed environment variable. The table
 
 <!-- MCP-TOOLS-TABLE:START -->
 
+#### Condensed action-routed tools (default — `MCP_TOOL_MODE=condensed`)
+
 | MCP Tool | Toggle Env Var | Description |
 |----------|----------------|-------------|
 | `author_operations` | `AUTHORSTOOL` | Manage Audiobookshelf authors. CONCEPT:ABS-002 |
@@ -66,7 +68,63 @@ domains can be toggled on or off with the listed environment variable. The table
 | `podcast_operations` | `PODCASTSTOOL` | Manage Audiobookshelf podcasts and episodes. CONCEPT:ABS-004 |
 | `series_operations` | `SERIESTOOL` | Manage Audiobookshelf series. CONCEPT:ABS-003 |
 
-_6 action-routed tools (default `MCP_TOOL_MODE=condensed`). Each is enabled unless its toggle is set false; set `MCP_TOOL_MODE=verbose` (or `both`) for the 1:1 per-operation surface. Auto-generated — do not edit._
+#### Verbose 1:1 API-mapped tools (`MCP_TOOL_MODE=verbose` or `both`)
+
+<details>
+<summary>46 per-operation tools — one per public API method (click to expand)</summary>
+
+| MCP Tool | Toggle Env Var | Description |
+|----------|----------------|-------------|
+| `audiobookshelf_add_author_image_by_id` | `AUTHORSTOOL` | Upload/add an author's image by id. |
+| `audiobookshelf_bulk_create_podcasts_from_opml_feed` | `PODCASTSTOOL` | Bulk create podcasts from an OPML feed. |
+| `audiobookshelf_check_new_episodes` | `PODCASTSTOOL` | Check for new episodes for a podcast by id. |
+| `audiobookshelf_clear_episode_download_queue` | `PODCASTSTOOL` | Clear the episode download queue for a podcast by id. |
+| `audiobookshelf_configure_notification_settings` | `NOTIFICATIONTOOL` | Update the global notification settings. |
+| `audiobookshelf_create_library` | `LIBRARIESTOOL` | Create a new library. |
+| `audiobookshelf_create_notification` | `NOTIFICATIONTOOL` | Create a new notification. |
+| `audiobookshelf_create_podcast` | `PODCASTSTOOL` | Create a new podcast library item. |
+| `audiobookshelf_delete_author_by_id` | `AUTHORSTOOL` | Delete an author by id. |
+| `audiobookshelf_delete_author_image_by_id` | `AUTHORSTOOL` | Remove an author's image by id. |
+| `audiobookshelf_delete_library_by_id` | `LIBRARIESTOOL` | Delete a library by id. |
+| `audiobookshelf_delete_library_issues` | `LIBRARIESTOOL` | Remove all library items that have issues from a library. |
+| `audiobookshelf_delete_notification` | `NOTIFICATIONTOOL` | Delete a notification by id. |
+| `audiobookshelf_download_episodes` | `PODCASTSTOOL` | Queue episodes for download for a podcast by id. |
+| `audiobookshelf_find_episode` | `PODCASTSTOOL` | Search for a podcast episode by id. |
+| `audiobookshelf_get_author_by_id` | `AUTHORSTOOL` | Get a single author by id (supports include/library params). |
+| `audiobookshelf_get_author_image_by_id` | `AUTHORSTOOL` | Get an author's image by id. |
+| `audiobookshelf_get_email_settings` | `EMAILTOOL` | Get the server email settings. |
+| `audiobookshelf_get_episode` | `PODCASTSTOOL` | Get a single podcast episode by id. |
+| `audiobookshelf_get_episode_downloads` | `PODCASTSTOOL` | Get the current episode download queue for a podcast by id. |
+| `audiobookshelf_get_feeds_from_opml_text` | `PODCASTSTOOL` | Parse feeds from raw OPML text. |
+| `audiobookshelf_get_libraries` | `LIBRARIESTOOL` | List all libraries. |
+| `audiobookshelf_get_library_authors` | `LIBRARIESTOOL` | Get the authors within a library. |
+| `audiobookshelf_get_library_by_id` | `LIBRARIESTOOL` | Get a single library by id. |
+| `audiobookshelf_get_library_items` | `LIBRARIESTOOL` | Get the items within a library (supports limit/page/sort/filter params). |
+| `audiobookshelf_get_library_series` | `LIBRARIESTOOL` | Get the series within a library. |
+| `audiobookshelf_get_library_series_by_id` | `LIBRARIESTOOL` | Get a single series within a library by id. |
+| `audiobookshelf_get_notification_event_data` | `NOTIFICATIONTOOL` | Get the available notification event data. |
+| `audiobookshelf_get_notifications` | `NOTIFICATIONTOOL` | Get the configured notification settings and notifications. |
+| `audiobookshelf_get_podcast_feed` | `PODCASTSTOOL` | Fetch a podcast RSS feed by URL. |
+| `audiobookshelf_get_series` | `SERIESTOOL` | Get a single series by id (supports include params). |
+| `audiobookshelf_match_author_by_id` | `AUTHORSTOOL` | Match an author against a metadata provider by id. |
+| `audiobookshelf_quick_match_episodes` | `PODCASTSTOOL` | Quick-match a podcast's episodes against a feed by id. |
+| `audiobookshelf_remove_episode` | `PODCASTSTOOL` | Remove a podcast episode by id. |
+| `audiobookshelf_send_default_test_notification` | `NOTIFICATIONTOOL` | Send a default test notification. |
+| `audiobookshelf_send_ebook_to_device` | `EMAILTOOL` | Send an ebook to a configured e-reader device. |
+| `audiobookshelf_send_test_email` | `EMAILTOOL` | Send a test email using the configured settings. |
+| `audiobookshelf_send_test_notification` | `NOTIFICATIONTOOL` | Send a test notification for a specific notification by id. |
+| `audiobookshelf_update_author_by_id` | `AUTHORSTOOL` | Update an author by id. |
+| `audiobookshelf_update_author_image_by_id` | `AUTHORSTOOL` | Update an author's image by id. |
+| `audiobookshelf_update_email_settings` | `EMAILTOOL` | Update the server email settings. |
+| `audiobookshelf_update_episode` | `PODCASTSTOOL` | Update a podcast episode by id. |
+| `audiobookshelf_update_ereader_devices` | `EMAILTOOL` | Update the configured e-reader devices. |
+| `audiobookshelf_update_library_by_id` | `LIBRARIESTOOL` | Update a library by id. |
+| `audiobookshelf_update_notification` | `NOTIFICATIONTOOL` | Update a notification by id. |
+| `audiobookshelf_update_series` | `SERIESTOOL` | Update a series by id. |
+
+</details>
+
+_6 action-routed tool(s) (default) · 46 verbose 1:1 tool(s). Each is enabled unless its `<DOMAIN>TOOL` toggle is set false; `MCP_TOOL_MODE` selects the surface (`condensed` default · `verbose` 1:1 · `both`). Auto-generated — do not edit._
 <!-- MCP-TOOLS-TABLE:END -->
 
 ## Installation
