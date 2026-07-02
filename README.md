@@ -239,66 +239,15 @@ Tools are action-routed — pass an `action` plus a JSON `params_json` string:
 > Use the full `[agent]` extra only when you need the integrated Pydantic AI agent
 > (see [Installation](#installation)).
 
-### Using as an MCP Server
+### MCP Configuration Examples
 
-The MCP Server can be run in `stdio` (local), `streamable-http` (networked), or
-`sse` mode.
+<!-- MCP-CONFIG-EXAMPLES:START -->
 
-#### Environment Variables
-
-<!-- ENV-VARS-TABLE:START -->
-
-#### Package environment variables
-
-| Variable | Example | Description |
-|----------|---------|-------------|
-| `HOST` | `0.0.0.0` |  |
-| `PORT` | `8000` |  |
-| `TRANSPORT` | `stdio` | options: stdio, streamable-http, sse |
-| `ENABLE_OTEL` | `True` |  |
-| `OTEL_EXPORTER_OTLP_ENDPOINT` | `http://localhost:8080/api/public/otel` |  |
-| `OTEL_EXPORTER_OTLP_PUBLIC_KEY` | `pk-...` |  |
-| `OTEL_EXPORTER_OTLP_SECRET_KEY` | `sk-...` |  |
-| `OTEL_EXPORTER_OTLP_PROTOCOL` | `http/protobuf` |  |
-| `EUNOMIA_TYPE` | `none` | options: none, embedded, remote |
-| `EUNOMIA_POLICY_FILE` | `mcp_policies.json` |  |
-| `EUNOMIA_REMOTE_URL` | `http://eunomia-server:8000` |  |
-| `AUDIOBOOKSHELF_URL` | `http://localhost:13378` |  |
-| `AUDIOBOOKSHELF_TOKEN` | `your_token_here` |  |
-| `AUDIOBOOKSHELF_SSL_VERIFY` | `True` |  |
-| `LIBRARIESTOOL` | `True` |  |
-| `AUTHORSTOOL` | `True` |  |
-| `SERIESTOOL` | `True` |  |
-| `PODCASTSTOOL` | `True` |  |
-| `EMAILTOOL` | `True` |  |
-| `NOTIFICATIONTOOL` | `True` |  |
-
-#### Inherited agent-utilities variables (apply to every connector)
-
-| Variable | Example | Description |
-|----------|---------|-------------|
-| `MCP_TOOL_MODE` | `condensed` | Tool surface: `condensed` | `verbose` | `both` |
-| `MCP_ENABLED_TOOLS` | — | Comma-separated tool allow-list |
-| `MCP_DISABLED_TOOLS` | — | Comma-separated tool deny-list |
-| `MCP_ENABLED_TAGS` | — | Comma-separated tag allow-list |
-| `MCP_DISABLED_TAGS` | — | Comma-separated tag deny-list |
-| `MCP_CLIENT_AUTH` | — | Outbound MCP auth (`oidc-client-credentials` for fleet calls) |
-| `OIDC_CLIENT_ID` | — | OIDC client id (service-account auth) |
-| `OIDC_CLIENT_SECRET` | — | OIDC client secret (service-account auth) |
-| `DEBUG` | `False` | Verbose logging |
-| `PYTHONUNBUFFERED` | `1` | Unbuffered stdout (recommended in containers) |
-| `MCP_URL` | `http://localhost:8000/mcp` | URL of the MCP server the agent connects to |
-| `PROVIDER` | `openai` | LLM provider for the agent |
-| `MODEL_ID` | `gpt-4o` | Model id for the agent |
-| `ENABLE_WEB_UI` | `True` | Serve the AG-UI web interface |
-
-_20 package + 14 inherited variable(s). Auto-generated from `.env.example` + the shared agent-utilities set — do not edit._
-<!-- ENV-VARS-TABLE:END -->
-
-
-See the full [Environment Variables](#environment-variables) reference below. The minimum
-to connect is `AUDIOBOOKSHELF_URL` (target service URL) and `AUDIOBOOKSHELF_TOKEN`
-(API/access token).
+> **Install the slim `[mcp]` extra.** All examples install `audiobookshelf-mcp[mcp]` — the
+> MCP-server extra that pulls only the FastMCP / FastAPI tooling (`agent-utilities[mcp]`).
+> It deliberately **excludes** the heavy agent runtime (`pydantic-ai`, the epistemic-graph
+> engine, `dspy`, `llama-index`), so `uvx` / container installs are far smaller. Use the
+> full `[agent]` extra only when you need the integrated Pydantic AI agent.
 
 #### stdio Transport (local IDEs — Cursor, Claude Desktop, VS Code)
 
@@ -307,10 +256,21 @@ to connect is `AUDIOBOOKSHELF_URL` (target service URL) and `AUDIOBOOKSHELF_TOKE
   "mcpServers": {
     "audiobookshelf-mcp": {
       "command": "uvx",
-      "args": ["--from", "audiobookshelf-mcp[mcp]", "audiobookshelf-mcp"],
+      "args": [
+        "--from",
+        "audiobookshelf-mcp[mcp]",
+        "audiobookshelf-mcp"
+      ],
       "env": {
-        "AUDIOBOOKSHELF_URL": "https://service.example.com",
-        "AUDIOBOOKSHELF_TOKEN": "your_token"
+        "MCP_TOOL_MODE": "condensed",
+        "AUDIOBOOKSHELF_TOKEN": "your_token_here",
+        "AUDIOBOOKSHELF_URL": "http://localhost:13378",
+        "AUTHORSTOOL": "True",
+        "EMAILTOOL": "True",
+        "LIBRARIESTOOL": "True",
+        "NOTIFICATIONTOOL": "True",
+        "PODCASTSTOOL": "True",
+        "SERIESTOOL": "True"
       }
     }
   }
@@ -324,18 +284,69 @@ to connect is `AUDIOBOOKSHELF_URL` (target service URL) and `AUDIOBOOKSHELF_TOKE
   "mcpServers": {
     "audiobookshelf-mcp": {
       "command": "uvx",
-      "args": ["--from", "audiobookshelf-mcp[mcp]", "audiobookshelf-mcp", "--transport", "streamable-http", "--port", "8000"],
+      "args": [
+        "--from",
+        "audiobookshelf-mcp[mcp]",
+        "audiobookshelf-mcp",
+        "--transport",
+        "streamable-http",
+        "--port",
+        "8000"
+      ],
       "env": {
         "TRANSPORT": "streamable-http",
         "HOST": "0.0.0.0",
         "PORT": "8000",
-        "AUDIOBOOKSHELF_URL": "https://service.example.com",
-        "AUDIOBOOKSHELF_TOKEN": "your_token"
+        "MCP_TOOL_MODE": "condensed",
+        "AUDIOBOOKSHELF_TOKEN": "your_token_here",
+        "AUDIOBOOKSHELF_URL": "http://localhost:13378",
+        "AUTHORSTOOL": "True",
+        "EMAILTOOL": "True",
+        "LIBRARIESTOOL": "True",
+        "NOTIFICATIONTOOL": "True",
+        "PODCASTSTOOL": "True",
+        "SERIESTOOL": "True"
       }
     }
   }
 }
 ```
+
+Alternatively, connect to a pre-deployed Streamable-HTTP instance by `url`:
+
+```json
+{
+  "mcpServers": {
+    "audiobookshelf-mcp": {
+      "url": "http://localhost:8000/audiobookshelf-mcp/mcp"
+    }
+  }
+}
+```
+
+Deploying the Streamable-HTTP server via Docker:
+
+```bash
+docker run -d \
+  --name audiobookshelf-mcp-mcp \
+  -p 8000:8000 \
+  -e TRANSPORT=streamable-http \
+  -e HOST=0.0.0.0 \
+  -e PORT=8000 \
+  -e MCP_TOOL_MODE=condensed \
+  -e AUDIOBOOKSHELF_TOKEN=your_token_here \
+  -e AUDIOBOOKSHELF_URL=http://localhost:13378 \
+  -e AUTHORSTOOL=True \
+  -e EMAILTOOL=True \
+  -e LIBRARIESTOOL=True \
+  -e NOTIFICATIONTOOL=True \
+  -e PODCASTSTOOL=True \
+  -e SERIESTOOL=True \
+  knucklessg1/audiobookshelf-mcp:mcp
+```
+
+_Auto-generated from the code-read env surface (`MCP_TOOL_MODE` + package vars) — do not edit._
+<!-- MCP-CONFIG-EXAMPLES:END -->
 
 <!-- BEGIN GENERATED: additional-deployment-options -->
 ### Additional Deployment Options

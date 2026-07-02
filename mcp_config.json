@@ -8,15 +8,14 @@
       ],
       "env": {
         "MCP_TOOL_MODE": "condensed",
-        "AUDIOBOOKSHELF_URL": "<YOUR_AUDIOBOOKSHELF_URL>",
-        "AUDIOBOOKSHELF_TOKEN": "<YOUR_AUDIOBOOKSHELF_TOKEN>",
-        "AUDIOBOOKSHELF_SSL_VERIFY": "<YOUR_AUDIOBOOKSHELF_SSL_VERIFY>",
-        "LIBRARIESTOOL": "True",
+        "AUDIOBOOKSHELF_TOKEN": "your_token_here",
+        "AUDIOBOOKSHELF_URL": "http://localhost:13378",
         "AUTHORSTOOL": "True",
-        "SERIESTOOL": "True",
-        "PODCASTSTOOL": "True",
         "EMAILTOOL": "True",
-        "NOTIFICATIONTOOL": "True"
+        "LIBRARIESTOOL": "True",
+        "NOTIFICATIONTOOL": "True",
+        "PODCASTSTOOL": "True",
+        "SERIESTOOL": "True"
       }
     }
   }
