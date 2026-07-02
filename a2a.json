@@ -1,7 +1,7 @@
 {
   "name": "audiobookshelf-mcp-agent",
   "type": "agent",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Audiobookshelf API + MCP Server + A2A Server",
   "url": "https://github.com/Knuckles-Team/audiobookshelf-mcp/tree/main",
   "license": "MIT",
