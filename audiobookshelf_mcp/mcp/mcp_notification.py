@@ -9,7 +9,7 @@ from ..auth import get_client
 
 
 def register_notification_tools(mcp: FastMCP):
-    """Register notification dynamic tools. CONCEPT:ABS-006"""
+    """Register notification dynamic tools. CONCEPT:AS-OS.governance.abs-4"""
 
     @mcp.tool(tags={"notification"})
     async def notification_operations(
@@ -27,7 +27,7 @@ def register_notification_tools(mcp: FastMCP):
             default=None, description="MCP context for progress reporting"
         ),
     ) -> dict:
-        """Manage Audiobookshelf notifications. CONCEPT:ABS-006"""
+        """Manage Audiobookshelf notifications. CONCEPT:AS-OS.governance.abs-4"""
         if ctx:
             await ctx.info("Executing notification tool...")
         try:

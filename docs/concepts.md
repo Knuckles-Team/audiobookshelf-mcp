@@ -2,7 +2,7 @@
 
 > **Prefix**: `CONCEPT:ABS-*`
 > **Version**: 0.1.0
-> **Bridge**: [`CONCEPT:ECO-4.0`](https://github.com/Knuckles-Team/agent-utilities/blob/main/docs/concepts.md) (Unified Toolkit Ingestion)
+> **Bridge**: [`CONCEPT:AU-ECO.messaging.native-backend-abstraction`](https://github.com/Knuckles-Team/agent-utilities/blob/main/docs/concepts.md) (Unified Toolkit Ingestion)
 
 ---
 
@@ -10,17 +10,17 @@
 
 | Concept ID | Name | Description |
 |------------|------|-------------|
-| `CONCEPT:ABS-001` | Library Operations | MCP tool domain `libraries` — list/create/get/update/delete libraries, items & series |
-| `CONCEPT:ABS-002` | Author Operations | MCP tool domain `authors` — author CRUD, images & metadata match |
-| `CONCEPT:ABS-003` | Series Operations | MCP tool domain `series` — series get/update |
-| `CONCEPT:ABS-004` | Podcast Operations | MCP tool domain `podcasts` — podcast & episode management, OPML, downloads |
-| `CONCEPT:ABS-005` | Email & E-Reader | MCP tool domain `email` — email settings & send-ebook-to-device |
-| `CONCEPT:ABS-006` | Notification Operations | MCP tool domain `notification` — notification config, create, test |
+| `CONCEPT:AS-OS.identity.abs` | Library Operations | MCP tool domain `libraries` — list/create/get/update/delete libraries, items & series |
+| `CONCEPT:AS-OS.identity.abs-2` | Author Operations | MCP tool domain `authors` — author CRUD, images & metadata match |
+| `CONCEPT:AS-OS.governance.abs` | Series Operations | MCP tool domain `series` — series get/update |
+| `CONCEPT:AS-OS.governance.abs-2` | Podcast Operations | MCP tool domain `podcasts` — podcast & episode management, OPML, downloads |
+| `CONCEPT:AS-OS.governance.abs-3` | Email & E-Reader | MCP tool domain `email` — email settings & send-ebook-to-device |
+| `CONCEPT:AS-OS.governance.abs-4` | Notification Operations | MCP tool domain `notification` — notification config, create, test |
 
 ## Cross-Project References (from agent-utilities)
 
 | Concept ID | Name | Origin |
 |------------|------|--------|
-| `CONCEPT:ECO-4.0` | Unified Toolkit Ingestion | agent-utilities |
-| `CONCEPT:ORCH-1.2` | Confidence-Gated Router | agent-utilities |
-| `CONCEPT:OS-5.1` | Prompt Injection Defense | agent-utilities |
+| `CONCEPT:AU-ECO.messaging.native-backend-abstraction` | Unified Toolkit Ingestion | agent-utilities |
+| `CONCEPT:AU-ORCH.adapter.hot-cache-invalidation` | Confidence-Gated Router | agent-utilities |
+| `CONCEPT:AU-OS.config.secrets-authentication` | Prompt Injection Defense | agent-utilities |

@@ -5,9 +5,9 @@ import pytest
 from audiobookshelf_mcp.api import ApiClientBase
 
 
-@pytest.mark.concept("ABS-001")
+@pytest.mark.concept("AS-OS.identity.abs")
 def test_request_returns_json():
-    """API client returns parsed JSON. CONCEPT:ABS-001"""
+    """API client returns parsed JSON. CONCEPT:AS-OS.identity.abs"""
     client = ApiClientBase(base_url="http://localhost", token="t")
     response = MagicMock()
     response.json.return_value = {"ok": True}

@@ -9,7 +9,7 @@ from ..auth import get_client
 
 
 def register_podcasts_tools(mcp: FastMCP):
-    """Register podcast dynamic tools. CONCEPT:ABS-004"""
+    """Register podcast dynamic tools. CONCEPT:AS-OS.governance.abs-2"""
 
     @mcp.tool(tags={"podcasts"})
     async def podcast_operations(
@@ -29,7 +29,7 @@ def register_podcasts_tools(mcp: FastMCP):
             default=None, description="MCP context for progress reporting"
         ),
     ) -> dict:
-        """Manage Audiobookshelf podcasts and episodes. CONCEPT:ABS-004"""
+        """Manage Audiobookshelf podcasts and episodes. CONCEPT:AS-OS.governance.abs-2"""
         if ctx:
             await ctx.info("Executing podcast tool...")
         try:

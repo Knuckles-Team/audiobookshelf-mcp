@@ -9,7 +9,7 @@ from ..auth import get_client
 
 
 def register_authors_tools(mcp: FastMCP):
-    """Register author dynamic tools. CONCEPT:ABS-002"""
+    """Register author dynamic tools. CONCEPT:AS-OS.identity.abs-2"""
 
     @mcp.tool(tags={"authors"})
     async def author_operations(
@@ -27,7 +27,7 @@ def register_authors_tools(mcp: FastMCP):
             default=None, description="MCP context for progress reporting"
         ),
     ) -> dict:
-        """Manage Audiobookshelf authors. CONCEPT:ABS-002"""
+        """Manage Audiobookshelf authors. CONCEPT:AS-OS.identity.abs-2"""
         if ctx:
             await ctx.info("Executing author tool...")
         try:

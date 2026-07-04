@@ -9,7 +9,7 @@ from ..auth import get_client
 
 
 def register_series_tools(mcp: FastMCP):
-    """Register series dynamic tools. CONCEPT:ABS-003"""
+    """Register series dynamic tools. CONCEPT:AS-OS.governance.abs"""
 
     @mcp.tool(tags={"series"})
     async def series_operations(
@@ -22,7 +22,7 @@ def register_series_tools(mcp: FastMCP):
             default=None, description="MCP context for progress reporting"
         ),
     ) -> dict:
-        """Manage Audiobookshelf series. CONCEPT:ABS-003"""
+        """Manage Audiobookshelf series. CONCEPT:AS-OS.governance.abs"""
         if ctx:
             await ctx.info("Executing series tool...")
         try:

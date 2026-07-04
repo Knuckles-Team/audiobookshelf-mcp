@@ -9,7 +9,7 @@ from ..auth import get_client
 
 
 def register_email_tools(mcp: FastMCP):
-    """Register email/e-reader dynamic tools. CONCEPT:ABS-005"""
+    """Register email/e-reader dynamic tools. CONCEPT:AS-OS.governance.abs-3"""
 
     @mcp.tool(tags={"email"})
     async def email_operations(
@@ -27,7 +27,7 @@ def register_email_tools(mcp: FastMCP):
             default=None, description="MCP context for progress reporting"
         ),
     ) -> dict:
-        """Manage Audiobookshelf email settings and e-reader delivery. CONCEPT:ABS-005"""
+        """Manage Audiobookshelf email settings and e-reader delivery. CONCEPT:AS-OS.governance.abs-3"""
         if ctx:
             await ctx.info("Executing email tool...")
         try:

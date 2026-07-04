@@ -61,12 +61,12 @@ domains can be toggled on or off with the listed environment variable. The table
 
 | MCP Tool | Toggle Env Var | Description |
 |----------|----------------|-------------|
-| `author_operations` | `AUTHORSTOOL` | Manage Audiobookshelf authors. CONCEPT:ABS-002 |
-| `email_operations` | `EMAILTOOL` | Manage Audiobookshelf email settings and e-reader delivery. CONCEPT:ABS-005 |
-| `library_operations` | `LIBRARIESTOOL` | Manage Audiobookshelf libraries. CONCEPT:ABS-001 |
-| `notification_operations` | `NOTIFICATIONTOOL` | Manage Audiobookshelf notifications. CONCEPT:ABS-006 |
-| `podcast_operations` | `PODCASTSTOOL` | Manage Audiobookshelf podcasts and episodes. CONCEPT:ABS-004 |
-| `series_operations` | `SERIESTOOL` | Manage Audiobookshelf series. CONCEPT:ABS-003 |
+| `author_operations` | `AUTHORSTOOL` | Manage Audiobookshelf authors. CONCEPT:AS-OS.identity.abs-2 |
+| `email_operations` | `EMAILTOOL` | Manage Audiobookshelf email settings and e-reader delivery. CONCEPT:AS-OS.governance.abs-3 |
+| `library_operations` | `LIBRARIESTOOL` | Manage Audiobookshelf libraries. CONCEPT:AS-OS.identity.abs |
+| `notification_operations` | `NOTIFICATIONTOOL` | Manage Audiobookshelf notifications. CONCEPT:AS-OS.governance.abs-4 |
+| `podcast_operations` | `PODCASTSTOOL` | Manage Audiobookshelf podcasts and episodes. CONCEPT:AS-OS.governance.abs-2 |
+| `series_operations` | `SERIESTOOL` | Manage Audiobookshelf series. CONCEPT:AS-OS.governance.abs |
 
 #### Verbose 1:1 API-mapped tools (`MCP_TOOL_MODE=verbose` or `both`)
 

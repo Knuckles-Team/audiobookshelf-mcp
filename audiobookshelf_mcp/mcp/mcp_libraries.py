@@ -9,7 +9,7 @@ from ..auth import get_client
 
 
 def register_libraries_tools(mcp: FastMCP):
-    """Register library-management dynamic tools. CONCEPT:ABS-001"""
+    """Register library-management dynamic tools. CONCEPT:AS-OS.identity.abs"""
 
     @mcp.tool(tags={"libraries"})
     async def library_operations(
@@ -28,7 +28,7 @@ def register_libraries_tools(mcp: FastMCP):
             default=None, description="MCP context for progress reporting"
         ),
     ) -> dict:
-        """Manage Audiobookshelf libraries. CONCEPT:ABS-001"""
+        """Manage Audiobookshelf libraries. CONCEPT:AS-OS.identity.abs"""
         if ctx:
             await ctx.info("Executing library tool...")
         try:

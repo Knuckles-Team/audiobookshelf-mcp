@@ -6,9 +6,9 @@ import audiobookshelf_mcp.auth as auth_module
 from audiobookshelf_mcp.auth import get_client
 
 
-@pytest.mark.concept("ABS-001")
+@pytest.mark.concept("AS-OS.identity.abs")
 def test_get_client_auth_error():
-    """Auth failure surfaces a clear error. CONCEPT:ABS-001"""
+    """Auth failure surfaces a clear error. CONCEPT:AS-OS.identity.abs"""
     auth_module._client = None
     with patch("audiobookshelf_mcp.auth.ApiClientSystem") as mock_client_cls:
         mock_client_cls.side_effect = Exception("Auth Failure")
