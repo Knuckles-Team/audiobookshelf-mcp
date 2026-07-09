@@ -1,5 +1,6 @@
 ---
 name: audiobookshelf-kg-ingestion
+skill_type: skill
 description: >-
   Natively push an Audiobookshelf collection into the epistemic-graph knowledge graph
   via the audiobookshelf-mcp MCP server — libraries, audiobooks/podcasts, authors and

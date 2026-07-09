@@ -1,5 +1,6 @@
 ---
 name: audiobookshelf-podcast-manager
+skill_type: skill
 description: >-
   Create and manage Audiobookshelf podcasts, their RSS feeds and episodes via the
   audiobookshelf-mcp MCP server — add a podcast from a feed URL, bulk-import from OPML,

@@ -1,5 +1,6 @@
 ---
 name: audiobookshelf-library-catalog
+skill_type: skill
 description: >-
   Browse and manage Audiobookshelf libraries, their audiobook/ebook items and series
   via the audiobookshelf-mcp MCP server — list libraries, page through library items
