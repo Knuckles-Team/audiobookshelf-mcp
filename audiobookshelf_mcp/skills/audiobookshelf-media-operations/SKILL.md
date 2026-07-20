@@ -1,5 +1,6 @@
 ---
 name: audiobookshelf-media-operations
+skill_type: skill
 description: Browse and administer an authorized Audiobookshelf service through audiobookshelf-mcp, including audiobook and podcast libraries, items, authors, series, feeds, episodes, download queues, email delivery, and notifications. Use for catalog research, metadata curation, podcast maintenance, carefully approved mutations, or requesting centrally governed GraphOS synchronization of media metadata.
 ---
 
