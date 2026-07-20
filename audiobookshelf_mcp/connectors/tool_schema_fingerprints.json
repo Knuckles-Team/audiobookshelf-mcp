@@ -1,0 +1,8 @@
+{
+  "algorithm": "agent-utilities:mcp-tool-schema-compat:v1",
+  "connector": "audiobookshelf-mcp",
+  "schema_version": "1",
+  "tools": {
+    "library_operations": "351ec944b00232d4c166e5cde9dd5a0a3d35a99bf855c40a7540eca583132a5c"
+  }
+}

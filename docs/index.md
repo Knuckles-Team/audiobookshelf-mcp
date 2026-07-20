@@ -17,17 +17,18 @@ typed, action-routed connector.
 `audiobookshelf-mcp` wraps the target service with typed, deterministic MCP tools and an
 optional Pydantic-AI agent server.
 
-The connector remains inactive when credentials are absent: configure
-`AUDIOBOOKSHELF_URL` and `AUDIOBOOKSHELF_TOKEN` to connect it to an instance.
+The connector remains inactive until a runtime endpoint alias and either a fixed token
+or delegated identity are available.
 
 ## Explore the documentation
 
 <div class="grid cards" markdown>
 
-- :material-rocket-launch: **[Installation](installation.md)** — pip, source, extras, and the prebuilt Docker image.
-- :material-server-network: **[Deployment](deployment.md)** — run the MCP and agent servers, Docker Compose, Caddy + Technitium.
+- :material-rocket-launch: **[Installation](installation.md)** — package extras, source, and local container builds.
+- :material-shield-lock: **[Configuration](configuration.md)** — AgentConfig, external secrets, verified TLS, and privacy.
+- :material-server-network: **[Deployment](deployment.md)** — run the MCP and agent servers with neutral runtime inputs.
 - :material-console: **[Usage](usage.md)** — the MCP tools, the Python client, and the CLI.
-- :material-database-cog: **[Backing Platform](platform.md)** — deploy the target service with Docker.
+- :material-database-cog: **[Backing Platform](platform.md)** — target-service requirements and ownership boundary.
 - :material-sitemap: **[Overview](overview.md)** — the action-routed tool surface and architecture.
 - :material-graph: **[Concepts](concepts.md)** — the CONCEPT ID registry.
 

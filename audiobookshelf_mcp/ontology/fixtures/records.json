@@ -1,0 +1,21 @@
+{
+  "connector": "audiobookshelf-mcp",
+  "fixtures": [
+    {
+      "expected": {
+        "acl_state": "quarantine",
+        "id": "fixture-record",
+        "title": "Synthetic certification record"
+      },
+      "preset": "audiobookshelf-libraries",
+      "record": {
+        "acl_public": false,
+        "id": "fixture-record",
+        "lastUpdate": "2000-01-01T00:00:00Z",
+        "mediaType": "Synthetic content used only for contract validation.",
+        "name": "Synthetic certification record"
+      }
+    }
+  ],
+  "schema_version": "1"
+}

@@ -164,31 +164,38 @@ sync:
   title_field: name
   text_field: mediaType
   updated_field: lastUpdate
-  pagination: null
+  pagination: none
   doc_type: library
+  tool_schema_sha256: 351ec944b00232d4c166e5cde9dd5a0a3d35a99bf855c40a7540eca583132a5c
   raw:
     server: audiobookshelf-mcp
     tool: library_operations
     action: list
+    params_style: json
+    params: {}
     records_path: libraries
     id_field: id
     title_field: name
     text_field: mediaType
     updated_field: lastUpdate
+    pagination: none
     doc_type: library
 provenance:
   generated_by: scripts/generate_connector_manifests.py
-  generated_at: '2026-07-09T00:00:00Z'
+  generated_at: '2026-07-18T14:21:05Z'
   source_artifacts:
   - a2a.json
   - audiobookshelf_mcp/connectors/mcp_source_presets.json
+  - audiobookshelf_mcp/connectors/tool_schema_fingerprints.json
   - audiobookshelf_mcp/ontology/audiobookshelf.ttl
   integrity:
     algorithm: urdna2015-sha256
     hash: aeaa27e0d6d0bf3d693970a8ada3facb29ec85e97d5e5194600634679bc9a84a
     triple_count: 78
   signer: ontology-manifest-generator
-  signature: 0e280cc9e967fb297f625fb646ec5245298e5233f1cf71d1b809eb7f8b4a5726
+  signature_algorithm: ed25519
+  signing_public_key: q0Cp7bmQMqJhbofGKKw8xXC6KbFzukBDDke0UYVi8y4
+  signature: wBQbokcdhBXNmS5fzZqj-JovxG-DsNNYZtxqzGDSTasW7eP6eW7Wf0iXFn3nhTcvX7WRNbtQXMEZU3MdfvKgDQ
 policy:
   pii_fields: {}
   tenant_boundary: null

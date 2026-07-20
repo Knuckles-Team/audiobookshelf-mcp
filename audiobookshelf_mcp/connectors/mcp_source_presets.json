@@ -1,14 +1,17 @@
 {
-  "_comment": "Tier-1 mcp_tool source presets for audiobookshelf-mcp (AU-KG.ingest.mcp-tool-connector). Syncs Audiobookshelf libraries into the KG as :Library records via the audiobookshelf-mcp MCP server's condensed library_operations tool (action=list). Contributed presets win over the central MCP_TOOL_PRESETS. Extend with library-items / authors presets as needed.",
+  "_comment": "Human-authored, instance-neutral source input owned by audiobookshelf-mcp. It remains inactive until the central capability compiler produces and an operator approves a signed schema-v2 manifest pinned to the live tool schema and media-data policy.",
   "audiobookshelf-libraries": {
     "server": "audiobookshelf-mcp",
     "tool": "library_operations",
     "action": "list",
+    "params_style": "json",
+    "params": {},
     "records_path": "libraries",
     "id_field": "id",
     "title_field": "name",
     "text_field": "mediaType",
     "updated_field": "lastUpdate",
+    "pagination": "none",
     "doc_type": "library"
   }
 }

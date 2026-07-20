@@ -17,6 +17,19 @@ This project follows the standardized agent-package pattern:
   lowercase, each togglable with a `*TOOL` environment flag.
 - **A2A Agent Server**: a Pydantic-AI graph agent (console script `audiobookshelf-agent`)
   that calls the MCP tool surface and exposes an AG-UI web interface.
+- **Verified transport profiles**: every outbound request uses the shared AgentConfig
+  TLS resolver; verification is not a connector-level toggle.
+- **Governed capability inputs**: one human-reviewed skill, ontology, source preset,
+  prompts, and package entry points are discoverable without storing an instance
+  schema or URL. The provider has no direct graph writer.
+
+## Capability boundary
+
+The ontology models the standard Audiobookshelf library, book, podcast, episode,
+author, and series concepts used by the public tool surface. The source preset maps
+the neutral `library_operations` list result. Environment-specific records, custom
+fields, tenant mappings, endpoints, credentials, live records, and generated signatures
+are discovered or supplied at runtime and are not part of this repository.
 
 ## Concept Registry
 

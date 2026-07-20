@@ -24,40 +24,50 @@ class ApiClientPodcasts(ApiClientBase):
 
     def check_new_episodes(self, id: str) -> dict[str, Any]:
         """Check for new episodes for a podcast by id."""
-        return self.request("GET", f"/api/podcasts/{id}/checknew")
+        return self.request("GET", self._path("api", "podcasts", id, "checknew"))
 
     def clear_episode_download_queue(self, id: str) -> dict[str, Any]:
         """Clear the episode download queue for a podcast by id."""
-        return self.request("GET", f"/api/podcasts/{id}/clear-queue")
+        return self.request("GET", self._path("api", "podcasts", id, "clear-queue"))
 
     def download_episodes(self, id: str, **body: Any) -> dict[str, Any]:
         """Queue episodes for download for a podcast by id."""
-        return self.request("POST", f"/api/podcasts/{id}/download-episodes", json=body)
+        return self.request(
+            "POST", self._path("api", "podcasts", id, "download-episodes"), json=body
+        )
 
     def get_episode_downloads(self, id: str) -> dict[str, Any]:
         """Get the current episode download queue for a podcast by id."""
-        return self.request("GET", f"/api/podcasts/{id}/downloads")
+        return self.request("GET", self._path("api", "podcasts", id, "downloads"))
 
     def get_episode(self, id: str, episode_id: str) -> dict[str, Any]:
         """Get a single podcast episode by id."""
-        return self.request("GET", f"/api/podcasts/{id}/episode/{episode_id}")
+        return self.request(
+            "GET", self._path("api", "podcasts", id, "episode", episode_id)
+        )
 
     def update_episode(self, id: str, episode_id: str, **body: Any) -> dict[str, Any]:
         """Update a podcast episode by id."""
         return self.request(
-            "PATCH", f"/api/podcasts/{id}/episode/{episode_id}", json=body
+            "PATCH", self._path("api", "podcasts", id, "episode", episode_id), json=body
         )
 
     def remove_episode(self, id: str, episode_id: str) -> dict[str, Any]:
         """Remove a podcast episode by id."""
-        return self.request("DELETE", f"/api/podcasts/{id}/episode/{episode_id}")
+        return self.request(
+            "DELETE", self._path("api", "podcasts", id, "episode", episode_id)
+        )
 
     def quick_match_episodes(self, id: str, **body: Any) -> dict[str, Any]:
         """Quick-match a podcast's episodes against a feed by id."""
-        return self.request("POST", f"/api/podcasts/{id}/match-episodes", json=body)
+        return self.request(
+            "POST", self._path("api", "podcasts", id, "match-episodes"), json=body
+        )
 
     def find_episode(self, id: str, **params: Any) -> dict[str, Any]:
         """Search for a podcast episode by id."""
         return self.request(
-            "GET", f"/api/podcasts/{id}/search-episode", params=params or None
+            "GET",
+            self._path("api", "podcasts", id, "search-episode"),
+            params=params or None,
         )

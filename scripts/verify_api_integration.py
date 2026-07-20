@@ -1,13 +1,15 @@
 #!/usr/bin/env python3
-import os
 import ast
 import glob
+import os
 import sys
+from pathlib import Path
 
 BASELINES = {
     "adguard-home-agent": 89.2,
     "ansible-tower-mcp": 94.7,
     "archivebox-api": 85.7,
+    "audiobookshelf-mcp": 100.0,
     "documentdb-mcp": 100.0,
     "github-agent": 100.0,
     "gitlab-api": 6.4,
@@ -32,10 +34,10 @@ BASELINES = {
 
 def parse_api_client(filepath):
     """
-    Parses api_client.py to find the main API/Client class and its public methods.
+    Parses one current API client module and finds its public methods.
     Returns a set of method names.
     """
-    with open(filepath, "r", encoding="utf-8") as f:
+    with open(filepath, encoding="utf-8") as f:
         tree = ast.parse(f.read(), filename=filepath)
 
     methods = {}
@@ -47,10 +49,11 @@ def parse_api_client(filepath):
                 for item in node.body:
                     if isinstance(item, (ast.FunctionDef, ast.AsyncFunctionDef)):
                         # Filter out private methods and constructor
-                        if (
-                            not item.name.startswith("_")
-                            and item.name != "authenticate"
-                        ):
+                        if not item.name.startswith("_") and item.name not in {
+                            "authenticate",
+                            "close",
+                            "request",
+                        }:
                             methods[item.name] = {
                                 "line": item.lineno,
                                 "class": node.name,
@@ -82,7 +85,7 @@ class MethodCallVisitor(ast.NodeVisitor):
 
     def visit_Compare(self, node):
         # Capture action comparisons, e.g. action == "get"
-        for op, comparator in zip(node.ops, node.comparators):
+        for op, comparator in zip(node.ops, node.comparators, strict=True):
             if isinstance(op, (ast.Eq, ast.In)):
                 if isinstance(comparator, ast.Constant) and isinstance(
                     comparator.value, str
@@ -96,7 +99,7 @@ def parse_mcp_server(filepath, api_methods):
     Parses mcp_server.py to extract registered tools and identify which
     api_methods they leverage.
     """
-    with open(filepath, "r", encoding="utf-8") as f:
+    with open(filepath, encoding="utf-8") as f:
         tree = ast.parse(f.read(), filename=filepath)
 
     tool_mappings = {}
@@ -135,25 +138,37 @@ def parse_mcp_server(filepath, api_methods):
 
 
 def verify_agent(agent_dir):
-    # Find api_client.py and mcp_server.py
-    api_clients = glob.glob(
-        os.path.join(agent_dir, "**", "api_client.py"), recursive=True
+    """Compare public client methods with current MCP server and module calls."""
+    api_clients = set(
+        glob.glob(os.path.join(agent_dir, "**", "api_client.py"), recursive=True)
     )
-    mcp_servers = glob.glob(
-        os.path.join(agent_dir, "**", "mcp_server.py"), recursive=True
+    api_clients.update(
+        glob.glob(
+            os.path.join(agent_dir, "**", "api", "api_client_*.py"), recursive=True
+        )
+    )
+    mcp_servers = set(
+        glob.glob(os.path.join(agent_dir, "**", "mcp_server.py"), recursive=True)
+    )
+    mcp_servers.update(
+        glob.glob(os.path.join(agent_dir, "**", "mcp", "*.py"), recursive=True)
     )
 
     if not api_clients or not mcp_servers:
         return None
 
-    api_client_path = api_clients[0]
-    mcp_server_path = mcp_servers[0]
-
-    api_methods = parse_api_client(api_client_path)
+    api_methods = {}
+    for api_client_path in sorted(api_clients):
+        api_methods.update(parse_api_client(api_client_path))
     if not api_methods:
         return None
 
-    tool_mappings, mapped_methods = parse_mcp_server(mcp_server_path, api_methods)
+    tool_mappings = {}
+    mapped_methods = set()
+    for mcp_server_path in sorted(mcp_servers):
+        file_mappings, file_methods = parse_mcp_server(mcp_server_path, api_methods)
+        tool_mappings.update(file_mappings)
+        mapped_methods.update(file_methods)
 
     total_methods = len(api_methods)
     covered_methods = len(mapped_methods)
@@ -163,8 +178,6 @@ def verify_agent(agent_dir):
 
     return {
         "agent_name": os.path.basename(agent_dir),
-        "api_client": api_client_path,
-        "mcp_server": mcp_server_path,
         "total_methods": total_methods,
         "covered_methods": covered_methods,
         "coverage": coverage,
@@ -184,7 +197,7 @@ def main():
         if not res:
             # If no client or server found in this dir, pass silently (e.g. non-python files, doc edits)
             print(
-                "Skipping integration parity verification: No mcp_server.py/api_client.py found in current directory."
+                "Skipping integration parity verification: no current API client/MCP modules found."
             )
             sys.exit(0)
 
@@ -218,7 +231,7 @@ def main():
             sys.exit(0)
 
     # --- Default Mode (Workspace-wide Scan) ---
-    agents_dir = "/home/apps/workspace/agent-packages/agents"
+    agents_dir = str(Path(__file__).resolve().parents[2])
     agent_dirs = [
         d for d in glob.glob(os.path.join(agents_dir, "*")) if os.path.isdir(d)
     ]
@@ -243,11 +256,14 @@ def main():
             if res:
                 results.append(res)
         except Exception as e:
-            print(f"Error parsing {agent_dir}: {e}", file=sys.stderr)
+            print(
+                f"Error parsing {os.path.basename(agent_dir)} ({type(e).__name__})",
+                file=sys.stderr,
+            )
 
     # Print a beautiful report
     print("# API to MCP Integration Parity Report")
-    print(f"Scan Directory: `{agents_dir}`\n")
+    print("Scan scope: agent workspace\n")
     print("| Agent Name | API Methods | Covered Methods | Coverage % | Status |")
     print("|---|---|---|---|---|")
 

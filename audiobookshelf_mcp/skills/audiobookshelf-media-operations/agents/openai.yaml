@@ -1,0 +1,4 @@
+interface:
+  display_name: "Audiobookshelf Media Operations"
+  short_description: "Manage Audiobookshelf media libraries safely"
+  default_prompt: "Use $audiobookshelf-media-operations to manage this Audiobookshelf library or podcast task safely."

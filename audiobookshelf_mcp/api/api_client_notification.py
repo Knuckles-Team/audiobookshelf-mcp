@@ -28,12 +28,12 @@ class ApiClientNotification(ApiClientBase):
 
     def delete_notification(self, id: str) -> dict[str, Any]:
         """Delete a notification by id."""
-        return self.request("DELETE", f"/api/notifications/{id}")
+        return self.request("DELETE", self._path("api", "notifications", id))
 
     def update_notification(self, id: str, **body: Any) -> dict[str, Any]:
         """Update a notification by id."""
-        return self.request("PATCH", f"/api/notifications/{id}", json=body)
+        return self.request("PATCH", self._path("api", "notifications", id), json=body)
 
     def send_test_notification(self, id: str) -> dict[str, Any]:
         """Send a test notification for a specific notification by id."""
-        return self.request("GET", f"/api/notifications/{id}/test")
+        return self.request("GET", self._path("api", "notifications", id, "test"))

@@ -1,0 +1,20 @@
+schema_version: '1'
+connector: audiobookshelf-mcp
+ontology_source: audiobookshelf
+sync:
+- preset: audiobookshelf-libraries
+  server: audiobookshelf-mcp
+  tool: library_operations
+  action: list
+  records_path: libraries
+  id_field: id
+  title_field: name
+  text_field: mediaType
+  updated_field: lastUpdate
+  doc_type: library
+  tool_schema_sha256: 351ec944b00232d4c166e5cde9dd5a0a3d35a99bf855c40a7540eca583132a5c
+governance:
+  default_acl: quarantine
+  identity: opaque-reference
+  tenant: required-at-materialization
+  provenance: required-at-materialization

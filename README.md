@@ -31,9 +31,10 @@
 
 ## Overview
 
-**Audiobookshelf MCP MCP Server + A2A Agent**
+**Audiobookshelf API client + MCP Server + A2A Agent**
 
-Audiobookshelf API + MCP Server + A2A Server
+The package exposes an operator-selected Audiobookshelf service through typed,
+action-routed tools without storing an endpoint, credential, or instance profile.
 
 This repository is actively maintained - Contributions are welcome!
 
@@ -45,6 +46,10 @@ This repository is actively maintained - Contributions are welcome!
   (`stdio` / `streamable-http` / `sse`), or a Pydantic-AI **A2A agent**.
 - **`agent-utilities` native** — built on the shared framework (auth, action router,
   telemetry, governance) for fleet consistency.
+- **Verified transport profiles** — outbound HTTP uses AgentConfig-backed TLS trust;
+  peer and hostname verification cannot be disabled by this connector.
+- **Governed graph capability inputs** — ships one comprehensive skill, a public-model
+  ontology, and a neutral source preset, but no direct graph-write or raw-media tool.
 - **Per-tool toggles** — enable or disable each tool domain with environment switches.
 - **Enterprise-ready** — OTEL/Langfuse telemetry and optional Eunomia access governance.
 
@@ -57,7 +62,7 @@ domains can be toggled on or off with the listed environment variable. The table
 
 <!-- MCP-TOOLS-TABLE:START -->
 
-#### Condensed action-routed tools (default — `MCP_TOOL_MODE=condensed`)
+#### Condensed action-routed tools (`MCP_TOOL_MODE=condensed`)
 
 | MCP Tool | Toggle Env Var | Description |
 |----------|----------------|-------------|
@@ -124,7 +129,7 @@ domains can be toggled on or off with the listed environment variable. The table
 
 </details>
 
-_6 action-routed tool(s) (default) · 46 verbose 1:1 tool(s). Each is enabled unless its `<DOMAIN>TOOL` toggle is set false; `MCP_TOOL_MODE` selects the surface (`condensed` default · `verbose` 1:1 · `both`). Auto-generated — do not edit._
+_6 action-routed tool(s) · 46 verbose 1:1 tool(s). Each is enabled unless its `<DOMAIN>TOOL` toggle is set false; `MCP_TOOL_MODE` selects the surface (**`intent` default** — the six verb-tools, granular set loaded on demand · `condensed` action-routed · `verbose` 1:1 · `both`). Auto-generated — do not edit._
 <!-- MCP-TOOLS-TABLE:END -->
 
 ## Installation
@@ -132,7 +137,7 @@ _6 action-routed tool(s) (default) · 46 verbose 1:1 tool(s). Each is enabled un
 ### Install with `uvx` (no install — run on demand)
 
 ```bash
-uvx --from "audiobookshelf-mcp[mcp]" audiobookshelf-mcp      # MCP server (slim)
+uvx --from "audiobookshelf-mcp[mcp]" audiobookshelf-mcp      # MCP server
 uvx --from "audiobookshelf-mcp[agent]" audiobookshelf-agent  # A2A agent server (full)
 ```
 
@@ -142,12 +147,12 @@ Pick the extra that matches what you want to run:
 
 | Extra | Installs | Use when |
 |-------|----------|----------|
-| `audiobookshelf-mcp[mcp]` | Slim MCP server only (`agent-utilities[mcp]` — FastMCP/FastAPI) | You only run the **MCP server** (smallest install / image) |
-| `audiobookshelf-mcp[agent]` | Full agent runtime (`agent-utilities[agent,logfire]` — Pydantic AI + the epistemic-graph engine) | You run the **integrated agent** |
-| `audiobookshelf-mcp[all]` | Everything (`mcp` + `agent` + `logfire`) | Development / both surfaces |
+| `audiobookshelf-mcp[mcp]` | MCP server (`agent-utilities[mcp]`) plus the mandatory full epistemic-graph base runtime | You run the **MCP server** without the agent UI/runtime |
+| `audiobookshelf-mcp[agent]` | Current agent runtime (`agent-utilities[agent-runtime,logfire]`) | You run the **integrated agent** |
+| `audiobookshelf-mcp[all]` | MCP + agent runtime + Logfire | Development or both surfaces |
 
 ```bash
-# MCP server only (recommended for tool hosting — slim deps)
+# MCP server only (recommended for tool hosting)
 uv pip install "audiobookshelf-mcp[mcp]"
 
 # Full agent runtime (Pydantic AI + epistemic-graph engine)
@@ -163,26 +168,24 @@ One multi-stage `docker/Dockerfile` builds two right-sized images, selected by `
 
 | Image tag | Build target | Contents | Entrypoint |
 |-----------|--------------|----------|------------|
-| `knucklessg1/audiobookshelf-mcp:mcp` | `--target mcp` | `audiobookshelf-mcp[mcp]` — **slim**, no engine/`pydantic-ai`/`dspy`/`llama-index`/`tree-sitter` | `audiobookshelf-mcp` |
-| `knucklessg1/audiobookshelf-mcp:latest` | `--target agent` (default) | `audiobookshelf-mcp[agent]` — **full** agent runtime + epistemic-graph engine | `audiobookshelf-agent` |
+| `audiobookshelf-mcp:mcp` | `--target mcp` | MCP server plus the mandatory full epistemic-graph base dependency | `audiobookshelf-mcp` |
+| `audiobookshelf-mcp@sha256:<digest>` | `--target agent` (default) | MCP dependencies plus the current Pydantic-AI agent runtime | `audiobookshelf-agent` |
 
 ```bash
-docker build --target mcp   -t knucklessg1/audiobookshelf-mcp:mcp    docker/   # slim MCP server
-docker build --target agent -t knucklessg1/audiobookshelf-mcp:latest docker/   # full agent
+docker build --target mcp -t audiobookshelf-mcp:mcp -f docker/Dockerfile .
+docker build --target agent -t audiobookshelf-mcp:agent-local -f docker/Dockerfile .
 ```
 
-`docker/mcp.compose.yml` runs the slim `:mcp` server; `docker/agent.compose.yml` runs the
-agent (`:latest`) with a co-located `:mcp` sidecar.
+`docker/mcp.compose.yml` runs the MCP-only `:mcp` server; `docker/agent.compose.yml` runs the
+agent (`immutable agent digest`) with a co-located `:mcp` sidecar.
 
 ### Knowledge-graph database (`epistemic-graph`)
 
-The **full agent** (`[agent]` / `:latest`) embeds the **epistemic-graph** engine (pulled in
-transitively via `agent-utilities[agent]`). For production — or to share one knowledge graph
-across multiple agents — run **epistemic-graph as its own database container** and point the
-agent at it instead of embedding it. Deployment recipes (single-node + Raft HA), connection
-config, and the full database architecture (with diagrams) are documented in the
+Every install receives `epistemic-graph[full]` through the current Agent Utilities base
+dependency. The connector does not open an insecure engine listener or silently select a
+machine-specific engine. Deployment topology and identity are resolved by AgentConfig. For a
+shared production authority, follow the
 [epistemic-graph deployment guide](https://knuckles-team.github.io/epistemic-graph/deployment/).
-The slim `[mcp]` server does **not** require the database.
 
 ### Console scripts
 
@@ -201,8 +204,10 @@ After installation the following entry points are available on your `PATH`:
 from audiobookshelf_mcp.auth import get_client
 
 client = get_client()
-status = client.get_system_status()
-print(status)
+try:
+    print(client.get_libraries())
+finally:
+    client.close()
 ```
 
 ### As an MCP server (CLI)
@@ -212,7 +217,7 @@ print(status)
 audiobookshelf-mcp
 
 # Networked streamable-http
-audiobookshelf-mcp --transport streamable-http --host 0.0.0.0 --port 8000
+audiobookshelf-mcp --transport streamable-http --host 127.0.0.1 --port 8000
 ```
 
 ### Calling an MCP tool
@@ -221,9 +226,9 @@ Tools are action-routed — pass an `action` plus a JSON `params_json` string:
 
 ```json
 {
-  "tool": "system_operations",
+  "tool": "library_operations",
   "arguments": {
-    "action": "status",
+    "action": "list",
     "params_json": "{}"
   }
 }
@@ -231,23 +236,14 @@ Tools are action-routed — pass an `action` plus a JSON `params_json` string:
 
 ## MCP
 
-> **Install the slim `[mcp]` extra.** The MCP examples below install
-> `audiobookshelf-mcp[mcp]` — the MCP-server extra that pulls only the FastMCP /
-> FastAPI tooling (`agent-utilities[mcp]`). It deliberately **excludes** the heavy
-> agent runtime (the epistemic-graph engine, `pydantic-ai`, `dspy`, `llama-index`,
-> `tree-sitter`), so `uvx`/container installs are dramatically smaller and faster.
-> Use the full `[agent]` extra only when you need the integrated Pydantic AI agent
-> (see [Installation](#installation)).
-
 ### MCP Configuration Examples
 
 <!-- MCP-CONFIG-EXAMPLES:START -->
 
-> **Install the slim `[mcp]` extra.** All examples install `audiobookshelf-mcp[mcp]` — the
-> MCP-server extra that pulls only the FastMCP / FastAPI tooling (`agent-utilities[mcp]`).
-> It deliberately **excludes** the heavy agent runtime (`pydantic-ai`, the epistemic-graph
-> engine, `dspy`, `llama-index`), so `uvx` / container installs are far smaller. Use the
-> full `[agent]` extra only when you need the integrated Pydantic AI agent.
+> **Install the connector-focused `[mcp]` extra.** Examples use `audiobookshelf-mcp[mcp]` to add
+> FastMCP / FastAPI through `agent-utilities[mcp]`; the required Agent Utilities core
+> still carries `epistemic-graph[full]`. The `[agent-runtime]` extra additionally
+> enables model orchestration.
 
 #### stdio Transport (local IDEs — Cursor, Claude Desktop, VS Code)
 
@@ -262,9 +258,9 @@ Tools are action-routed — pass an `action` plus a JSON `params_json` string:
         "audiobookshelf-mcp"
       ],
       "env": {
-        "MCP_TOOL_MODE": "condensed",
-        "AUDIOBOOKSHELF_TOKEN": "your_token_here",
-        "AUDIOBOOKSHELF_URL": "http://localhost:13378",
+        "MCP_TOOL_MODE": "intent",
+        "AUDIOBOOKSHELF_TOKEN": "env://AUDIOBOOKSHELF_TOKEN",
+        "AUDIOBOOKSHELF_URL": "env://AUDIOBOOKSHELF_URL",
         "AUTHORSTOOL": "True",
         "EMAILTOOL": "True",
         "LIBRARIESTOOL": "True",
@@ -276,6 +272,10 @@ Tools are action-routed — pass an `action` plus a JSON `params_json` string:
   }
 }
 ```
+
+Runtime references require an alias-aware launcher such as GraphOS. Other
+launchers must omit those entries and inject the resolved values through their
+own runtime secret boundary.
 
 #### Streamable-HTTP Transport (networked / production)
 
@@ -295,11 +295,11 @@ Tools are action-routed — pass an `action` plus a JSON `params_json` string:
       ],
       "env": {
         "TRANSPORT": "streamable-http",
-        "HOST": "0.0.0.0",
+        "HOST": "127.0.0.1",
         "PORT": "8000",
-        "MCP_TOOL_MODE": "condensed",
-        "AUDIOBOOKSHELF_TOKEN": "your_token_here",
-        "AUDIOBOOKSHELF_URL": "http://localhost:13378",
+        "MCP_TOOL_MODE": "intent",
+        "AUDIOBOOKSHELF_TOKEN": "env://AUDIOBOOKSHELF_TOKEN",
+        "AUDIOBOOKSHELF_URL": "env://AUDIOBOOKSHELF_URL",
         "AUTHORSTOOL": "True",
         "EMAILTOOL": "True",
         "LIBRARIESTOOL": "True",
@@ -324,26 +324,33 @@ Alternatively, connect to a pre-deployed Streamable-HTTP instance by `url`:
 }
 ```
 
-Deploying the Streamable-HTTP server via Docker:
+Run a reviewed container image as a least-privilege stdio child (no
+listener or published port):
 
 ```bash
-docker run -d \
-  --name audiobookshelf-mcp-mcp \
-  -p 8000:8000 \
-  -e TRANSPORT=streamable-http \
-  -e HOST=0.0.0.0 \
-  -e PORT=8000 \
-  -e MCP_TOOL_MODE=condensed \
-  -e AUDIOBOOKSHELF_TOKEN=your_token_here \
-  -e AUDIOBOOKSHELF_URL=http://localhost:13378 \
+docker run -i --rm \
+  --read-only \
+  --cap-drop=ALL \
+  --security-opt=no-new-privileges \
+  --pids-limit=256 \
+  --tmpfs /tmp:rw,noexec,nosuid,nodev,size=64m \
+  -e TRANSPORT=stdio \
+  -e MCP_TOOL_MODE=intent \
+  -e AUDIOBOOKSHELF_TOKEN \
+  -e AUDIOBOOKSHELF_URL \
   -e AUTHORSTOOL=True \
   -e EMAILTOOL=True \
   -e LIBRARIESTOOL=True \
   -e NOTIFICATIONTOOL=True \
   -e PODCASTSTOOL=True \
   -e SERIESTOOL=True \
-  knucklessg1/audiobookshelf-mcp:mcp
+  registry.example.invalid/audiobookshelf-mcp@sha256:<digest> audiobookshelf-mcp
 ```
+
+For containerized network HTTP, supply an authenticated TLS ingress (or
+direct server TLS), exact `MCP_ALLOWED_HOSTS`, and an exact trusted-proxy
+CIDR policy through the operator-owned deployment profile. The generator
+does not emit an unauthenticated non-loopback listener.
 
 _Auto-generated from the code-read env surface (`MCP_TOOL_MODE` + package vars) — do not edit._
 <!-- MCP-CONFIG-EXAMPLES:END -->
@@ -351,74 +358,74 @@ _Auto-generated from the code-read env surface (`MCP_TOOL_MODE` + package vars) 
 <!-- BEGIN GENERATED: additional-deployment-options -->
 ### Additional Deployment Options
 
-`audiobookshelf-mcp` can also run as a **local container** (Docker / Podman / `uv`) or be
-consumed from a **remote deployment**. The
-[Deployment guide](https://knuckles-team.github.io/audiobookshelf-mcp/deployment/) has full,
-copy-paste `mcp_config.json` for all four transports — **stdio**, **streamable-http**,
-**local container / uv**, and **remote URL**:
+`audiobookshelf-mcp` can run as a local stdio process or container, or behind a remote
+network boundary. The
+[Deployment guide](https://knuckles-team.github.io/audiobookshelf-mcp/deployment/) carries
+the detailed transport contract.
 
-- **Local container / uv** — launch the server from `mcp_config.json` via `uvx`,
-  `docker run`, or `podman run`, or point at a local streamable-http container by `url`.
-- **Remote URL** — connect to a server deployed behind Caddy at
-  `http://audiobookshelf-mcp.arpa/mcp` using the `"url"` key.
+- **Local container** — launch a reviewed immutable image as a least-privilege
+  stdio child with no listener or published port.
+- **Remote URL** — connect through an operator-supplied authenticated HTTPS
+  ingress. Keep its URL, outbound identity references, trust profile, and exact
+  `MCP_ALLOWED_HOSTS` in `AgentConfig`.
 <!-- END GENERATED: additional-deployment-options -->
 
 ## Environment Variables
 
-Every variable the server reads, grouped by concern.
+<!-- ENV-VARS-TABLE:START -->
 
-### Connection & Credentials
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `AUDIOBOOKSHELF_URL` | Base URL of the Audiobookshelf instance | `http://localhost:13378` |
-| `AUDIOBOOKSHELF_TOKEN` | API token / access token | — |
-| `AUDIOBOOKSHELF_SSL_VERIFY` | TLS certificate verification | `True` |
+#### Package environment variables
 
-### Authentication mode (OIDC delegation)
-| Variable | Description |
-|----------|-------------|
-| `ENABLE_DELEGATION` | Set `true` to flow the caller's IdP token (RFC 8693 token exchange) to Audiobookshelf |
-| `OIDC_CONFIG_URL` / `OIDC_CLIENT_ID` / `OIDC_CLIENT_SECRET` | OIDC delegation IdP config (required when delegation is enabled) |
-| `AUDIENCE` | OIDC delegation token audience |
-| `DELEGATED_SCOPES` | OIDC delegation scopes |
+| Variable | Example | Description |
+|----------|---------|-------------|
+| `HOST` | `127.0.0.1` |  |
+| `PORT` | `8000` |  |
+| `TRANSPORT` | `stdio` | options: stdio, streamable-http, sse |
+| `MCP_TOOL_MODE` | `intent` | options: intent, condensed, verbose, both |
+| `ENABLE_OTEL` | `False` |  |
+| `OTEL_EXPORTER_OTLP_ENDPOINT` | `env://OTEL_EXPORTER_OTLP_ENDPOINT` | runtime endpoint |
+| `OTEL_EXPORTER_OTLP_HEADERS_REF` | `secret://telemetry/headers` | runtime header reference |
+| `OTEL_EXPORTER_OTLP_PROTOCOL` | `http/protobuf` | OTLP transport protocol |
+| `LANGFUSE_CAPTURE_CONTENT` | `false` |  |
+| `EUNOMIA_TYPE` | `none` | options: none, embedded, remote |
+| `EUNOMIA_POLICY_FILE` | — |  |
+| `EUNOMIA_REMOTE_URL` | `env://EUNOMIA_REMOTE_URL` | runtime policy endpoint |
+| `AUDIOBOOKSHELF_URL` | `env://AUDIOBOOKSHELF_URL` | resolved by the fleet launcher |
+| `AUDIOBOOKSHELF_TOKEN` | `env://AUDIOBOOKSHELF_TOKEN` | secret provider or delegation |
+| `LIBRARIESTOOL` | `True` |  |
+| `AUTHORSTOOL` | `True` |  |
+| `SERIESTOOL` | `True` |  |
+| `PODCASTSTOOL` | `True` |  |
+| `EMAILTOOL` | `True` |  |
+| `NOTIFICATIONTOOL` | `True` |  |
 
-### MCP server / transport
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `TRANSPORT` | `stdio`, `streamable-http`, or `sse` | `stdio` |
-| `HOST` | Bind host (HTTP transports) | `0.0.0.0` |
-| `PORT` | Bind port (HTTP transports) | `8000` |
-| `MCP_TOOL_MODE` | Tool surface: `condensed`, `verbose`, or `both` | `condensed` |
-| `MCP_ENABLED_TOOLS` / `MCP_DISABLED_TOOLS` | Comma-separated tool allow/deny list | — |
-| `MCP_ENABLED_TAGS` / `MCP_DISABLED_TAGS` | Comma-separated tag allow/deny list | — |
-| `DEBUG` | Verbose logging | `False` |
-| `PYTHONUNBUFFERED` | Unbuffered stdout (recommended in containers) | `1` |
+#### Inherited agent-utilities variables (apply to every connector)
 
-### Tool toggles
-Each action-routed tool can be disabled individually via its toggle env var (set to `false`):
-`LIBRARIESTOOL`, `AUTHORSTOOL`, `SERIESTOOL`, `PODCASTSTOOL`, `EMAILTOOL`, `NOTIFICATIONTOOL`
-(see the [Available MCP Tools](#available-mcp-tools) table above).
+| Variable | Example | Description |
+|----------|---------|-------------|
+| `MCP_ENABLED_TOOLS` | — | Comma-separated tool allow-list |
+| `MCP_DISABLED_TOOLS` | — | Comma-separated tool deny-list |
+| `MCP_ENABLED_TAGS` | — | Comma-separated tag allow-list |
+| `MCP_DISABLED_TAGS` | — | Comma-separated tag deny-list |
+| `MCP_CLIENT_AUTH` | — | Outbound MCP child auth: `oidc-client-credentials` \| `basic` \| `none` |
+| `OIDC_CLIENT_ID` | — | OIDC client id (service-account auth) |
+| `OIDC_CLIENT_SECRET_REF` | `secret://identity/oidc-client-secret` | Runtime secret reference for the OIDC service account |
+| `MCP_BASIC_AUTH_USERNAME` | — | HTTP Basic username (`MCP_CLIENT_AUTH=basic`) |
+| `MCP_BASIC_AUTH_PASSWORD_REF` | `secret://identity/mcp-basic-password` | Runtime secret reference for HTTP Basic auth (`MCP_CLIENT_AUTH=basic`) |
+| `DEBUG` | `False` | Verbose logging |
+| `PYTHONUNBUFFERED` | `1` | Unbuffered stdout (recommended in containers) |
+| `MCP_URL` | `http://localhost:8000/mcp` | URL of the MCP server the agent connects to |
+| `PROVIDER` | `openai` | LLM provider for the agent |
+| `MODEL_ID` | `gpt-4o` | Model id for the agent |
+| `ENABLE_WEB_UI` | `True` | Serve the AG-UI web interface |
 
-### Telemetry & governance
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `ENABLE_OTEL` | Enable OpenTelemetry export | `True` |
-| `OTEL_EXPORTER_OTLP_ENDPOINT` | OTLP collector endpoint | — |
-| `OTEL_EXPORTER_OTLP_PUBLIC_KEY` / `OTEL_EXPORTER_OTLP_SECRET_KEY` | OTLP auth keys | — |
-| `OTEL_EXPORTER_OTLP_PROTOCOL` | OTLP protocol (e.g. `http/protobuf`) | — |
-| `EUNOMIA_TYPE` | Authorization mode: `none`, `embedded`, `remote` | `none` |
-| `EUNOMIA_POLICY_FILE` | Embedded policy file | `mcp_policies.json` |
-| `EUNOMIA_REMOTE_URL` | Remote Eunomia server URL | — |
+_20 package + 15 inherited variable(s). Auto-generated from `.env.example` + the shared agent-utilities set — do not edit._
+<!-- ENV-VARS-TABLE:END -->
 
-### Agent CLI (full `[agent]` runtime only)
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `MCP_URL` | URL of the MCP server the agent connects to | `http://localhost:8000/mcp` |
-| `PROVIDER` | LLM provider (e.g. `openai`) | `openai` |
-| `MODEL_ID` | Model id (e.g. `gpt-4o`) | `gpt-4o` |
-| `ENABLE_WEB_UI` | Serve the AG-UI web interface | `True` |
-
-See [`.env.example`](.env.example) for a copy-paste starting point.
+The generated table is the authoritative process-variable catalog. Endpoint and
+credential examples are unresolved references, not deployment values. AgentConfig owns
+TLS selection, OIDC delegation, runtime secret resolution, and observability policy; see
+[Configuration, trust, and privacy](docs/configuration.md) for those typed profiles.
 
 ## Documentation
 
@@ -427,29 +434,48 @@ Full documentation is published to the GitHub Pages site and mirrored under `doc
 - [Documentation site](https://knuckles-team.github.io/audiobookshelf-mcp/)
 - [Overview](docs/overview.md)
 - [Installation](docs/installation.md)
+- [Configuration, Trust, and Privacy](docs/configuration.md)
 - [Usage](docs/usage.md)
 - [Deployment](docs/deployment.md)
 - [Platform](docs/platform.md)
 - [Concept Registry](docs/concepts.md)
 
 
-<!-- BEGIN agent-os-genesis-deploy (generated; do not edit between markers) -->
+<!-- BEGIN agent-utilities-deployment (generated; do not edit between markers) -->
 
-## Deploy with `agent-os-genesis`
+## Deploy with `agent-utilities-deployment`
 
-This package can be provisioned for you — skill-guided — by the **`agent-os-genesis`**
-universal skill (its *single-package deploy mode*): it picks your install method, seeds
-secrets to OpenBao/Vault (or `.env`), trusts your enterprise CA, registers the MCP
-server, and verifies it — the same machinery that stands up the whole Agent OS, narrowed
-to just this package. Ask your agent to **"deploy `audiobookshelf-mcp` with agent-os-genesis"**.
+Provision this package with the consolidated **`agent-utilities-deployment`**
+workflow. It selects an installed-package, editable-source, or immutable-container
+path; records only runtime secret and TLS-profile references in `AgentConfig`; and
+runs doctor, registration, policy, observability, and rollback gates. Ask your agent
+to **"deploy `audiobookshelf-mcp` with agent-utilities-deployment"**.
 
 | Install mode | Command |
 |------|---------|
-| Bare-metal, prod (PyPI) | `uvx audiobookshelf-mcp` · or `uv tool install audiobookshelf-mcp` |
-| Bare-metal, dev (editable) | `uv pip install -e ".[all]"` · or `pip install -e ".[all]"` |
-| Container, prod | deploy `knucklessg1/audiobookshelf-mcp:latest` via docker-compose / swarm / podman / podman-compose / kubernetes |
-| Container, dev (editable) | deploy `docker/compose.dev.yml` (source-mounted at `/src`; edits live on restart) |
+| Installed package | `uv tool install "audiobookshelf-mcp[mcp]"`, then run `audiobookshelf-mcp` |
+| Editable source | `uv pip install -e ".[agent]"`, then run `audiobookshelf-mcp` |
+| Immutable container | deploy `registry.example.invalid/audiobookshelf-mcp@sha256:<digest>` through the operator-selected orchestrator |
 
-Secrets are read-existing + seeded via `vault_sync` — you are only prompted for what's missing.
+The repository embeds no deployment profile, credential value, certificate path, or
+environment-specific endpoint. Supply those at runtime through `AgentConfig` and the
+configured secret provider.
 
-<!-- END agent-os-genesis-deploy -->
+<!-- END agent-utilities-deployment -->
+
+<!-- GOVERNED-CAPABILITY:START -->
+## Governed capability contract
+
+This package owns the complete release-generated schema-v2 capability bundle:
+`connector_manifest.yml`, the exact local MCP schema fingerprint, the Audiobookshelf
+ontology, SHACL shapes, the neutral source mapping and fixture, the migration ledger,
+and an offline source attestation. Release tooling derives and signs these artifacts
+from the current tool and ontology sources; they are not hand-authored and do not claim
+external-live certification.
+
+Runtime endpoints, credentials, certificate trust, identity, tenant/ACL policy,
+retention, and observability destinations are deployment inputs and are never packaged
+values. See [Configuration, trust, and privacy](docs/configuration.md) before enabling
+a network transport, GraphOS delegation, governed source synchronization, or trace
+export.
+<!-- GOVERNED-CAPABILITY:END -->

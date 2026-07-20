@@ -7,4 +7,6 @@ import pytest
 def test_package_imports():
     """Top-level package exposes its public API. CONCEPT:AS-OS.identity.abs"""
     module = importlib.import_module("audiobookshelf_mcp")
-    assert hasattr(module, "__all__")
+    assert module.__all__ == ["ApiClientBase", "ApiClientSystem"]
+    assert not hasattr(module, "_MCP_AVAILABLE")
+    assert not hasattr(module, "_AGENT_AVAILABLE")

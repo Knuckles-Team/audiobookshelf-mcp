@@ -1,5 +1,5 @@
 site_name: "audiobookshelf-mcp"
-site_description: "Audiobookshelf API + MCP Server + A2A Server"
+site_description: "Governed Audiobookshelf API, MCP, and A2A integration"
 site_url: "https://knuckles-team.github.io/audiobookshelf-mcp/"
 repo_name: "Knuckles-Team/audiobookshelf-mcp"
 repo_url: "https://github.com/Knuckles-Team/audiobookshelf-mcp"
@@ -88,6 +88,7 @@ nav:
   - Home: index.md
   - Overview: overview.md
   - Installation: installation.md
+  - Configuration, Trust & Privacy: configuration.md
   - Deployment: deployment.md
   - Usage (API / CLI / MCP): usage.md
   - Backing Platform (Audiobookshelf MCP): platform.md

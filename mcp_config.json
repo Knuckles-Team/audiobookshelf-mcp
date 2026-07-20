@@ -1,15 +1,16 @@
 {
   "mcpServers": {
     "audiobookshelf-mcp": {
-      "command": "uv",
+      "command": "uvx",
       "args": [
-        "run",
+        "--from",
+        "audiobookshelf-mcp[mcp]",
         "audiobookshelf-mcp"
       ],
       "env": {
-        "MCP_TOOL_MODE": "condensed",
-        "AUDIOBOOKSHELF_TOKEN": "your_token_here",
-        "AUDIOBOOKSHELF_URL": "http://localhost:13378",
+        "MCP_TOOL_MODE": "intent",
+        "AUDIOBOOKSHELF_TOKEN": "env://AUDIOBOOKSHELF_TOKEN",
+        "AUDIOBOOKSHELF_URL": "env://AUDIOBOOKSHELF_URL",
         "AUTHORSTOOL": "True",
         "EMAILTOOL": "True",
         "LIBRARIESTOOL": "True",

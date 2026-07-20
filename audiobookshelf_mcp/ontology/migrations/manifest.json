@@ -1,0 +1,6 @@
+{
+  "connector": "audiobookshelf-mcp",
+  "current_ontology_source": "audiobookshelf",
+  "migrations": [],
+  "schema_version": "1"
+}

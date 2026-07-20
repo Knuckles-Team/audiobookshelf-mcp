@@ -6,29 +6,36 @@ Priority:
 1. **OIDC Delegation** (RFC 8693 Token Exchange) — when ``ENABLE_DELEGATION`` is
    active, exchanges the IdP-issued user token for a downstream access token via the
    shared ``agent_utilities.mcp.delegated_auth`` helper.
-2. **Fixed credentials** — falls back to the ``AUDIOBOOKSHELF_TOKEN`` env var.
+2. **Fixed credentials** — resolves a GraphOS-selected AgentConfig provider profile or
+   falls back to the process-injected ``AUDIOBOOKSHELF_TOKEN`` value.
 
-For a multi-tenant service, add an ``instances.py`` that resolves a configured
-instance NAME (from ``<service>_instances`` in ``~/.config/agent-utilities/config.json``)
-to ``(url, token, verify)`` and call it here before the delegation/fixed paths — see
-``gitlab_api.instances`` (CONCEPT:AU-KG.backend.declared-columns-so-schema) for the golden pattern.
+Endpoint and credential values are resolved at runtime through the shared
+AgentConfig projection. TLS trust is a mandatory-verification profile resolved by
+``agent_utilities.core.transport_security``; this package never stores certificate
+material or a machine-specific trust path.
 """
+
+from typing import Any
 
 from agent_utilities.base_utilities import get_logger
 from agent_utilities.core.config import setting
 from agent_utilities.core.exceptions import AuthError, UnauthorizedError
+from agent_utilities.core.transport_security import (
+    ResolvedTLSProfile,
+    resolve_configured_tls_profile,
+)
 
 from .api import ApiClientSystem
 
 logger = get_logger(__name__)
-_client = None
+_client: ApiClientSystem | None = None
 
 
 def get_client(
     url: str | None = None,
     token: str | None = None,
-    verify: bool | None = None,
-    config: dict | None = None,
+    tls_profile: ResolvedTLSProfile | None = None,
+    config: dict[str, Any] | None = None,
 ) -> ApiClientSystem:
     """Get or create a singleton API client (OIDC delegation or fixed credentials).
 
@@ -36,59 +43,113 @@ def get_client(
     ``config.json`` / env) at call time, not frozen at import.
     """
     global _client
-    if _client is not None:
-        return _client
-
-    base_url = url or setting("AUDIOBOOKSHELF_URL", "http://localhost:13378")
-    token = token or setting("AUDIOBOOKSHELF_TOKEN", "")
-    if verify is None:
-        verify = setting("AUDIOBOOKSHELF_SSL_VERIFY", True)
 
     from agent_utilities.mcp.delegated_auth import (
         get_delegated_token,
-        get_user_identity,
         is_delegation_enabled,
     )
 
+    delegated = is_delegation_enabled(config)
+    explicit = any(value is not None for value in (url, token, tls_profile))
+    if not delegated and not explicit and _client is not None:
+        return _client
+
+    runtime: Any | None = None
+    selected_profile = (
+        "" if explicit else str(setting("AGENT_PROVIDER_PROFILE", "") or "").strip()
+    )
+    if selected_profile:
+        try:
+            from agent_utilities.core.provider_runtime import (
+                resolve_selected_provider_runtime_profile,
+            )
+
+            runtime = resolve_selected_provider_runtime_profile()
+        except Exception:
+            raise RuntimeError(
+                "PROVIDER CONFIGURATION ERROR: selected runtime profile is unavailable"
+            ) from None
+        base_url = runtime.endpoint or ""
+        fixed_token = str(runtime.credentials.get("TOKEN", ""))
+        profile = runtime.tls
+        if not base_url or profile is None:
+            runtime.close()
+            raise RuntimeError(
+                "PROVIDER CONFIGURATION ERROR: selected runtime profile is incomplete"
+            ) from None
+    else:
+        base_url = url or setting("AUDIOBOOKSHELF_URL", "")
+        fixed_token = token or setting("AUDIOBOOKSHELF_TOKEN", "")
+        profile = tls_profile
+
+    if not base_url:
+        raise RuntimeError("AUDIOBOOKSHELF_URL is required")
+    if not delegated and not fixed_token:
+        if runtime is not None:
+            runtime.close()
+        raise RuntimeError(
+            "AUDIOBOOKSHELF_TOKEN is required when delegation is disabled"
+        )
+    profile = profile or resolve_configured_tls_profile("audiobookshelf")
+
     # --- Path 1: OIDC Delegation (RFC 8693 Token Exchange) ---
-    if is_delegation_enabled(config):
+    if delegated:
         try:
             delegated_token = get_delegated_token(
                 config=config,
                 audience=(config or {}).get("audience", base_url),
                 scopes=(config or {}).get("delegated_scopes", "api"),
-                verify=verify,
             )
-            identity = get_user_identity()
-            logger.info(
-                "Using OIDC delegated token",
-                extra={"user_email": identity.get("email"), "url": base_url},
+            logger.info("Using OIDC delegated credentials")
+            client = ApiClientSystem(
+                base_url=base_url,
+                token=delegated_token,
+                tls_profile=profile,
             )
-            _client = ApiClientSystem(
-                base_url=base_url, token=delegated_token, verify=verify
-            )
-            return _client
-        except Exception as e:
+            if runtime is not None:
+                # ApiClientSystem now owns cleanup for the transferred TLS profile.
+                runtime.tls = None
+            return client
+        except Exception as exc:
+            if runtime is not None:
+                runtime.close()
+            else:
+                profile.cleanup()
             logger.error(
                 "OIDC delegation failed",
-                extra={"error_type": type(e).__name__, "error_message": str(e)},
+                extra={"error_type": type(exc).__name__},
             )
-            raise RuntimeError(f"Token exchange failed: {str(e)}") from e
+            raise RuntimeError("Token exchange failed") from None
 
     # --- Path 2: Fixed Credentials (AUDIOBOOKSHELF_TOKEN) ---
     logger.info("Using fixed credentials")
     try:
-        _client = ApiClientSystem(base_url=base_url, token=token, verify=verify)
-    except (AuthError, UnauthorizedError) as e:
+        client = ApiClientSystem(
+            base_url=base_url,
+            token=fixed_token,
+            tls_profile=profile,
+        )
+    except (AuthError, UnauthorizedError):
+        if runtime is not None:
+            runtime.close()
+        else:
+            profile.cleanup()
         raise RuntimeError(
-            f"AUTHENTICATION ERROR: The credentials provided are not valid for '{base_url}'. "
-            f"Please check your AUDIOBOOKSHELF_TOKEN and AUDIOBOOKSHELF_URL environment variables. "
-            f"Error details: {str(e)}"
-        ) from e
-    except Exception as e:
+            "AUTHENTICATION ERROR: Audiobookshelf rejected the configured credential"
+        ) from None
+    except Exception as exc:
+        if runtime is not None:
+            runtime.close()
+        else:
+            profile.cleanup()
         raise RuntimeError(
-            f"AUTHENTICATION ERROR: Failed to instantiate client. "
-            f"Error details: {str(e)}"
-        ) from e
+            "AUTHENTICATION ERROR: Failed to instantiate the client "
+            f"({type(exc).__name__})"
+        ) from None
 
-    return _client
+    if runtime is not None:
+        # ApiClientSystem now owns cleanup for the transferred TLS profile.
+        runtime.tls = None
+    if not explicit:
+        _client = client
+    return client

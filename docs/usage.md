@@ -14,14 +14,25 @@ flag.
 ```python
 from audiobookshelf_mcp.auth import get_client
 
-api = get_client()        # reads AUDIOBOOKSHELF_URL / AUDIOBOOKSHELF_TOKEN from the environment / .env
-status = api.get_system_status()
+api = get_client()  # resolves AgentConfig/runtime connection and verified TLS trust
+try:
+    libraries = api.get_libraries()
+finally:
+    api.close()
 ```
 
 ## As a CLI
 
 ```bash
-export AUDIOBOOKSHELF_URL="http://localhost:8080"
-export AUDIOBOOKSHELF_TOKEN="your_token"
+# AUDIOBOOKSHELF_URL and AUDIOBOOKSHELF_TOKEN are injected by the runtime.
 audiobookshelf-mcp --transport stdio
 ```
+
+The condensed surface exposes `library_operations`, `author_operations`,
+`series_operations`, `podcast_operations`, `email_operations`, and
+`notification_operations`. Each call takes an `action` and a JSON-encoded
+`params_json` string. Enable only the domains authorized for the connector identity.
+
+When catalog metadata must enter epistemic-graph, request centrally governed GraphOS
+source synchronization. The provider exposes no direct graph-write or raw-cover
+ingestion action. See [Configuration, trust, and privacy](configuration.md).

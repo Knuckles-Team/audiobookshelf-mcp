@@ -5,11 +5,9 @@ import sys
 from typing import Any
 
 from agent_utilities.base_utilities import get_logger
-from agent_utilities.mcp_utilities import (
-    create_mcp_server,
-    load_config,
-    register_tool_surface,
-)
+from agent_utilities.core.config import load_config
+from agent_utilities.mcp.server_factory import create_mcp_server
+from agent_utilities.mcp.verbose_tools import register_tool_surface
 
 from . import mcp as tool_modules
 from .api import ApiClientSystem
@@ -22,12 +20,12 @@ logger.setLevel(logging.INFO)
 
 
 def get_mcp_instance() -> tuple[Any, Any, Any]:
-    """Initialize and return the Audiobookshelf MCP MCP instance, args, and middlewares.
+    """Initialize and return the Audiobookshelf MCP instance, args, and middleware.
 
     The whole tool surface is wired by the shared ``register_tool_surface`` helper
-    per ``MCP_TOOL_MODE`` (read from the XDG config): ``condensed`` (default,
-    action-routed tools), ``verbose`` (one named 1:1 tool per API method), or
-    ``both``. To add a domain, drop a ``register_<domain>_tools(mcp)`` into the
+    per ``MCP_TOOL_MODE`` (read from AgentConfig): ``intent`` (default),
+    ``condensed`` (action-routed tools), ``verbose`` (one named 1:1 tool per API
+    method), or ``both``. To add a domain, drop a ``register_<domain>_tools(mcp)`` into the
     ``mcp/`` package and re-export it from ``mcp/__init__.py`` — it is auto-discovered
     and gated by ``setting("<DOMAIN>TOOL", True)``; no edit here is needed. For
     fully-typed verbose tools, vendor an OpenAPI/Swagger spec under ``specs/`` and
@@ -36,9 +34,12 @@ def get_mcp_instance() -> tuple[Any, Any, Any]:
     load_config()
 
     args, mcp, middlewares = create_mcp_server(
-        name="Audiobookshelf MCP MCP",
+        name="Audiobookshelf MCP",
         version=__version__,
-        instructions="Audiobookshelf MCP MCP Server — condensed and verbose tool surfaces.",
+        instructions=(
+            "Audiobookshelf library and podcast operations. Media records and account "
+            "configuration are sensitive; use the governed current tool surface."
+        ),
     )
 
     register_tool_surface(
@@ -58,7 +59,7 @@ def get_mcp_instance() -> tuple[Any, Any, Any]:
 def mcp_server():
     mcp, args, _ = get_mcp_instance()
 
-    print(f"Audiobookshelf MCP MCP v{__version__}", file=sys.stderr)
+    print(f"Audiobookshelf MCP v{__version__}", file=sys.stderr)
     print("\nStarting MCP Server", file=sys.stderr)
     print(f"  Transport: {args.transport.upper()}", file=sys.stderr)
 
@@ -69,7 +70,7 @@ def mcp_server():
     elif args.transport == "sse":
         mcp.run(transport="sse", host=args.host, port=args.port)
     else:
-        logger.error(f"Invalid transport: {args.transport}")
+        logger.error("Invalid transport configuration")
         sys.exit(1)
 
 
