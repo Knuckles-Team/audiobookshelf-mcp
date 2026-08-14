@@ -8,7 +8,7 @@
 ![PyPI - License](https://img.shields.io/pypi/l/audiobookshelf-mcp)
 ![GitHub last commit (by committer)](https://img.shields.io/github/last-commit/Knuckles-Team/audiobookshelf-mcp)
 
-*Version: 2.0.0*
+*Version: 2.1.0*
 
 > **Documentation** — Installation, deployment, usage across the API, CLI, and MCP
 > interfaces, the integrated A2A agent server, and guidance for provisioning the
@@ -391,7 +391,7 @@ the detailed transport contract.
 | `EUNOMIA_POLICY_FILE` | — |  |
 | `EUNOMIA_REMOTE_URL` | `env://EUNOMIA_REMOTE_URL` | runtime policy endpoint |
 | `AUDIOBOOKSHELF_URL` | `env://AUDIOBOOKSHELF_URL` | resolved by the fleet launcher |
-| `AUDIOBOOKSHELF_TOKEN` | `env://AUDIOBOOKSHELF_TOKEN` | secret provider or delegation |
+| `AUDIOBOOKSHELF_TOKEN` | secret-injected | secret provider or delegation |
 | `LIBRARIESTOOL` | `True` |  |
 | `AUTHORSTOOL` | `True` |  |
 | `SERIESTOOL` | `True` |  |
