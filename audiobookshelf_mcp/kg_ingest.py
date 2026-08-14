@@ -7,89 +7,33 @@ by ``audiobookshelf_mcp.ontology``.
 
 The txn write path itself is the shared fleet primitive
 ``agent_utilities.knowledge_graph.memory.native_ingest`` — this module is only the thin
-**mapper** (Audiobookshelf records → entity / document dicts). The primitive import is
-guarded: if the shared helper (or a live engine) is unavailable, a self-contained txn
-fallback over the lightweight ``GraphComputeEngine`` client is used, and if even that is
-absent every entry point **no-ops** (returns ``None``), so the connector runs with zero KG
-infrastructure. Node ids follow ``audiobookshelf:<class>:<externalId>``.
+**mapper** (Audiobookshelf records → entity / document dicts); there is no self-contained
+fallback transaction here.
+
+The MCP tool surface (``audiobookshelf_mcp.mcp.mcp_ingest``) exposes these as best-effort
+tools that must never raise on an unreachable/misconfigured KG stack, so
+``ingest_entities`` / ``ingest_documents`` stay **best-effort**: they return ``None``
+(never raise) for empty input or when the shared primitive reports
+:class:`NativeIngestError` (no reachable engine, or a malformed record). Node ids follow
+``audiobookshelf:<class>:<externalId>`` and each ``node_type`` matches a class the
+package's ontology federates.
 """
 
 from __future__ import annotations
 
 import logging
-import time
 from typing import Any
+
+from agent_utilities.knowledge_graph.memory.native_ingest import (
+    NativeIngestError,
+    ingest_documents as _native_ingest_documents,
+    ingest_entities as _native_ingest_entities,
+)
 
 logger = logging.getLogger("audiobookshelf_mcp.kg")
 
 _SOURCE = "audiobookshelf-mcp"
 _DOMAIN = "audiobookshelf"
-_DEFAULT_GRAPH = "__commons__"
-
-
-# --------------------------------------------------------------------------- #
-# Write path — prefer the shared primitive, fall back to a self-contained txn. #
-# --------------------------------------------------------------------------- #
-def _native_client() -> tuple[Any | None, str]:
-    """Return ``(engine_client, graph_name)`` or ``(None, "")`` when unavailable."""
-    try:
-        from agent_utilities.knowledge_graph.core.graph_compute import (
-            GraphComputeEngine,
-        )
-    except Exception as e:  # noqa: BLE001 — KG stack absent
-        logger.debug("KG ingest unavailable (import): %s", e)
-        return None, ""
-    try:
-        engine = GraphComputeEngine()
-        client = getattr(engine, "_client", None)
-        if client is None:
-            return None, ""
-        return client, (getattr(engine, "graph_name", None) or _DEFAULT_GRAPH)
-    except Exception as e:  # noqa: BLE001 — engine unreachable
-        logger.debug("KG ingest: engine unreachable: %s", e)
-        return None, ""
-
-
-def _fallback_write_nodes(
-    client: Any,
-    graph: str,
-    nodes: list[dict[str, Any]],
-    relationships: list[dict[str, Any]] | None,
-    *,
-    source: str,
-    domain: str,
-) -> dict[str, int] | None:
-    """Self-contained txn write, used when the shared primitive is not importable."""
-    nodes = [n for n in nodes if n.get("id")]
-    if not nodes:
-        return None
-    try:
-        txn = client.txn.begin(graph=graph)
-        for node in nodes:
-            props = {k: v for k, v in node.items() if k != "id" and v is not None}
-            props.setdefault("source", source)
-            props.setdefault("domain", domain)
-            client.txn.add_node(txn, node["id"], props)
-        committed = client.txn.commit(txn)
-    except Exception as e:  # noqa: BLE001 — engine/txn failure is non-fatal
-        logger.warning("KG ingest: txn failed: %s", e)
-        return None
-    if not committed:
-        logger.warning("KG ingest: txn not committed (conflict)")
-        return None
-
-    edges = 0
-    for rel in relationships or []:
-        try:
-            client.edges.add(
-                rel["source"], rel["target"], {"type": rel.get("type", "RELATED")}
-            )
-            edges += 1
-        except Exception as e:  # noqa: BLE001 — pure edge link, best-effort
-            logger.debug("KG ingest: edge skipped: %s", e)
-
-    logger.info("KG ingest[%s]: wrote %d nodes, %d edges", domain, len(nodes), edges)
-    return {"nodes": len(nodes), "edges": edges}
 
 
 def ingest_entities(
@@ -101,44 +45,29 @@ def ingest_entities(
     client: Any | None = None,
     graph: str | None = None,
 ) -> dict[str, int] | None:
-    """Write typed OWL nodes (+ edges) into the engine.
+    """Write typed OWL nodes (+ edges) into the engine. Best-effort, never raises.
 
-    ``entities``: ``[{"id":..., "type":<owl:Class>, ...props}]``.
-    ``relationships``: ``[{"source":id, "target":id, "type":<link>}]``.
-    Returns ``{"nodes":n, "edges":m}`` or ``None``. ``client``/``graph`` may be
-    injected (tests); otherwise resolved on demand. Never raises.
+    ``entities``: ``[{"id":..., "node_type":<owl:Class>, ...props}]``.
+    ``relationships``: ``[{"source":id, "target":id, "relationship":<link>}]``.
+    Returns ``{"nodes":n, "edges":m}`` or ``None`` (empty input / no reachable engine /
+    malformed record). ``client``/``graph`` may be injected (tests); otherwise the
+    process-owned governed authority is resolved on demand.
     """
     entities = [e for e in (entities or []) if e.get("id")]
     if not entities:
         return None
-    # Prefer the shared fleet primitive when it is installed AND we are not under an
-    # injected client (tests inject a fake client to exercise the txn path directly).
-    if client is None:
-        try:
-            from agent_utilities.knowledge_graph.memory.native_ingest import (
-                ingest_entities as _shared_ingest,
-            )
-
-            return _shared_ingest(
-                entities,
-                relationships,
-                source=source,
-                domain=domain,
-                graph=graph,
-            )
-        except Exception as e:  # noqa: BLE001 — shared primitive not present yet
-            logger.debug("KG ingest: shared primitive unavailable: %s", e)
-        client, graph = _native_client()
-    if client is None:
+    try:
+        return _native_ingest_entities(
+            entities,
+            relationships,
+            source=source,
+            domain=domain,
+            client=client,
+            graph=graph,
+        )
+    except NativeIngestError as exc:
+        logger.debug("KG ingest unavailable/failed: %s", exc)
         return None
-    return _fallback_write_nodes(
-        client,
-        graph or _DEFAULT_GRAPH,
-        entities,
-        relationships,
-        source=source,
-        domain=domain,
-    )
 
 
 def ingest_documents(
@@ -149,66 +78,45 @@ def ingest_documents(
     client: Any | None = None,
     graph: str | None = None,
 ) -> dict[str, int] | None:
-    """Write text records as ``:Document`` nodes (semantic-search fodder).
+    """Write text records as ``:Document`` nodes (semantic-search fodder). Best-effort.
 
     Each doc: ``{"id":..., "text":..., "title"?:..., "source_uri"?:..., ...props}``.
     Returns ``{"nodes":n, "edges":0}`` or ``None``. Never raises.
     """
-    if client is None:
-        try:
-            from agent_utilities.knowledge_graph.memory.native_ingest import (
-                ingest_documents as _shared_docs,
-            )
-
-            return _shared_docs(documents, source=source, domain=domain, graph=graph)
-        except Exception as e:  # noqa: BLE001 — shared primitive not present yet
-            logger.debug("KG ingest: shared doc primitive unavailable: %s", e)
-    now = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
-    nodes: list[dict[str, Any]] = []
-    for doc in documents or []:
-        did = doc.get("id")
-        text = doc.get("text") or doc.get("content")
-        if not did or not text:
-            continue
-        node = {k: v for k, v in doc.items() if k != "content" and v is not None}
-        node["id"] = did
-        node["type"] = "Document"
-        node["text"] = text
-        node.setdefault("created_at", now)
-        nodes.append(node)
-    if not nodes:
+    if not documents:
         return None
-    if client is None:
-        client, graph = _native_client()
-    if client is None:
+    try:
+        return _native_ingest_documents(
+            documents, source=source, domain=domain, client=client, graph=graph
+        )
+    except NativeIngestError as exc:
+        logger.debug("KG ingest unavailable/failed: %s", exc)
         return None
-    return _fallback_write_nodes(
-        client, graph or _DEFAULT_GRAPH, nodes, None, source=source, domain=domain
-    )
 
 
 def media_store() -> Any | None:
     """Return a shared :class:`MediaStore` over a live engine (raw-blob ingestion), or ``None``."""
     try:
-        from agent_utilities.knowledge_graph.memory.native_ingest import (
-            media_store as _shared_media_store,
-        )
+        from agent_utilities.knowledge_graph.memory import native_ingest
 
-        return _shared_media_store()
+        return native_ingest.media_store()
     except Exception as e:  # noqa: BLE001 — shared primitive not present yet
         logger.debug("KG ingest: shared media_store unavailable: %s", e)
-    client, _ = _native_client()
-    if client is None:
-        return None
     try:
         from agent_utilities.knowledge_graph.core.graph_compute import (
             GraphComputeEngine,
         )
         from agent_utilities.knowledge_graph.memory.media_store import MediaStore
-
-        return MediaStore(GraphComputeEngine())
-    except Exception as e:  # noqa: BLE001
-        logger.debug("KG ingest: media_store build failed: %s", e)
+    except Exception as e:  # noqa: BLE001 — KG stack absent
+        logger.debug("KG media ingest unavailable (import): %s", e)
+        return None
+    try:
+        engine = GraphComputeEngine()
+        if getattr(engine, "_client", None) is None:
+            return None
+        return MediaStore(engine)
+    except Exception as e:  # noqa: BLE001 — no reachable engine
+        logger.debug("KG media ingest: engine unreachable: %s", e)
         return None
 
 
@@ -253,7 +161,7 @@ def ingest_libraries(
         entities.append(
             {
                 "id": f"audiobookshelf:library:{lid}",
-                "type": "Library",
+                "node_type": "Library",
                 "name": lib.get("name"),
                 "mediaType": lib.get("mediaType"),
                 "provider": lib.get("provider"),
@@ -304,7 +212,7 @@ def ingest_library_items(
             _add(
                 {
                     "id": node_id,
-                    "type": "Podcast",
+                    "node_type": "Podcast",
                     "title": meta.get("title"),
                     "mediaType": "podcast",
                     "feedUrl": meta.get("feedUrl"),
@@ -318,7 +226,7 @@ def ingest_library_items(
             _add(
                 {
                     "id": node_id,
-                    "type": "Book",
+                    "node_type": "Book",
                     "title": meta.get("title"),
                     "subtitle": meta.get("subtitle"),
                     "mediaType": "book",
@@ -343,13 +251,17 @@ def ingest_library_items(
                 _add(
                     {
                         "id": author_id,
-                        "type": "Author",
+                        "node_type": "Author",
                         "name": aname,
                         "externalToolId": str(akey),
                     }
                 )
                 relationships.append(
-                    {"source": node_id, "target": author_id, "type": "writtenBy"}
+                    {
+                        "source": node_id,
+                        "target": author_id,
+                        "relationship": "writtenBy",
+                    }
                 )
             # narrator (Person) — fall back to :narratedBy on the book props only
             # series -> :Series + :partOfSeries
@@ -363,13 +275,17 @@ def ingest_library_items(
                 _add(
                     {
                         "id": series_id,
-                        "type": "Series",
+                        "node_type": "Series",
                         "name": sname,
                         "externalToolId": str(skey),
                     }
                 )
                 relationships.append(
-                    {"source": node_id, "target": series_id, "type": "partOfSeries"}
+                    {
+                        "source": node_id,
+                        "target": series_id,
+                        "relationship": "partOfSeries",
+                    }
                 )
 
         if lib_id is not None:
@@ -377,7 +293,7 @@ def ingest_library_items(
                 {
                     "source": node_id,
                     "target": f"audiobookshelf:library:{lib_id}",
-                    "type": "inLibrary",
+                    "relationship": "inLibrary",
                 }
             )
 
@@ -402,7 +318,7 @@ def ingest_authors(
         entities.append(
             {
                 "id": author_id,
-                "type": "Author",
+                "node_type": "Author",
                 "name": author.get("name"),
                 "description": author.get("description"),
                 "numBooks": author.get("numBooks"),
@@ -415,7 +331,7 @@ def ingest_authors(
                 {
                     "source": author_id,
                     "target": f"audiobookshelf:library:{library_id}",
-                    "type": "inLibrary",
+                    "relationship": "inLibrary",
                 }
             )
     return ingest_entities(entities, relationships, client=client, graph=graph)
