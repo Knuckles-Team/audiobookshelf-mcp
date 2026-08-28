@@ -31,57 +31,55 @@ logger = get_logger(__name__)
 _client: ApiClientSystem | None = None
 
 
-def get_client(
-    url: str | None = None,
-    token: str | None = None,
-    tls_profile: ResolvedTLSProfile | None = None,
-    config: dict[str, Any] | None = None,
-) -> ApiClientSystem:
-    """Get or create a singleton API client (OIDC delegation or fixed credentials).
-
-    Credentials resolve through the shared config layer (the one XDG
-    ``config.json`` / env) at call time, not frozen at import.
-    """
-    global _client
-
-    from agent_utilities.mcp.delegated_auth import (
-        get_delegated_token,
-        is_delegation_enabled,
+def _resolve_provider_runtime_profile() -> Any:
+    """Resolve the GraphOS-selected provider runtime profile, or raise."""
+    from agent_utilities.core.provider_runtime import (
+        resolve_selected_provider_runtime_profile,
     )
 
-    delegated = is_delegation_enabled(config)
-    explicit = any(value is not None for value in (url, token, tls_profile))
-    if not delegated and not explicit and _client is not None:
-        return _client
+    try:
+        return resolve_selected_provider_runtime_profile()
+    except Exception:
+        raise RuntimeError(
+            "PROVIDER CONFIGURATION ERROR: selected runtime profile is unavailable"
+        ) from None
 
-    runtime: Any | None = None
+
+def _resolve_runtime_and_endpoint(
+    explicit: bool,
+    url: str | None,
+    token: str | None,
+    tls_profile: ResolvedTLSProfile | None,
+) -> tuple[Any, str, str, ResolvedTLSProfile | None]:
+    """Resolve ``(runtime, base_url, fixed_token, profile)``.
+
+    From the selected GraphOS provider profile when one applies, otherwise
+    from the explicit call args / fixed-credential settings.
+    """
     selected_profile = (
         "" if explicit else str(setting("AGENT_PROVIDER_PROFILE", "") or "").strip()
     )
-    if selected_profile:
-        try:
-            from agent_utilities.core.provider_runtime import (
-                resolve_selected_provider_runtime_profile,
-            )
-
-            runtime = resolve_selected_provider_runtime_profile()
-        except Exception:
-            raise RuntimeError(
-                "PROVIDER CONFIGURATION ERROR: selected runtime profile is unavailable"
-            ) from None
-        base_url = runtime.endpoint or ""
-        fixed_token = str(runtime.credentials.get("TOKEN", ""))
-        profile = runtime.tls
-        if not base_url or profile is None:
-            runtime.close()
-            raise RuntimeError(
-                "PROVIDER CONFIGURATION ERROR: selected runtime profile is incomplete"
-            ) from None
-    else:
+    if not selected_profile:
         base_url = url or setting("AUDIOBOOKSHELF_URL", "")
         fixed_token = token or setting("AUDIOBOOKSHELF_TOKEN", "")
-        profile = tls_profile
+        return None, base_url, fixed_token, tls_profile
 
+    runtime = _resolve_provider_runtime_profile()
+    base_url = runtime.endpoint or ""
+    fixed_token = str(runtime.credentials.get("TOKEN", ""))
+    profile = runtime.tls
+    if not base_url or profile is None:
+        runtime.close()
+        raise RuntimeError(
+            "PROVIDER CONFIGURATION ERROR: selected runtime profile is incomplete"
+        ) from None
+    return runtime, base_url, fixed_token, profile
+
+
+def _validate_credentials(
+    base_url: str, delegated: bool, fixed_token: str, runtime: Any | None
+) -> None:
+    """Raise a RuntimeError (closing ``runtime`` first) for missing credentials."""
     if not base_url:
         raise RuntimeError("AUDIOBOOKSHELF_URL is required")
     if not delegated and not fixed_token:
@@ -90,41 +88,54 @@ def get_client(
         raise RuntimeError(
             "AUDIOBOOKSHELF_TOKEN is required when delegation is disabled"
         )
-    profile = profile or resolve_configured_tls_profile("audiobookshelf")
 
-    # --- Path 1: OIDC Delegation (RFC 8693 Token Exchange) ---
-    if delegated:
-        try:
-            delegated_token = get_delegated_token(
-                config=config,
-                audience=(config or {}).get("audience", base_url),
-                scopes=(config or {}).get("delegated_scopes", "api"),
-            )
-            logger.info("Using OIDC delegated credentials")
-            client = ApiClientSystem(
-                base_url=base_url,
-                token=delegated_token,
-                tls_profile=profile,
-            )
-            if runtime is not None:
-                # ApiClientSystem now owns cleanup for the transferred TLS profile.
-                runtime.tls = None
-            return client
-        except Exception as exc:
-            if runtime is not None:
-                runtime.close()
-            else:
-                profile.cleanup()
-            logger.error(
-                "OIDC delegation failed",
-                extra={"error_type": type(exc).__name__},
-            )
-            raise RuntimeError("Token exchange failed") from None
 
-    # --- Path 2: Fixed Credentials (AUDIOBOOKSHELF_TOKEN) ---
-    logger.info("Using fixed credentials")
+def _build_delegated_client(
+    config: dict[str, Any] | None,
+    base_url: str,
+    profile: ResolvedTLSProfile,
+    runtime: Any | None,
+) -> ApiClientSystem:
+    """Path 1: OIDC Delegation (RFC 8693 Token Exchange)."""
+    from agent_utilities.mcp.delegated_auth import get_delegated_token
+
     try:
+        delegated_token = get_delegated_token(
+            config=config,
+            audience=(config or {}).get("audience", base_url),
+            scopes=(config or {}).get("delegated_scopes", "api"),
+        )
+        logger.info("Using OIDC delegated credentials")
         client = ApiClientSystem(
+            base_url=base_url,
+            token=delegated_token,
+            tls_profile=profile,
+        )
+        if runtime is not None:
+            # ApiClientSystem now owns cleanup for the transferred TLS profile.
+            runtime.tls = None
+        return client
+    except Exception as exc:
+        if runtime is not None:
+            runtime.close()
+        else:
+            profile.cleanup()
+        logger.error(
+            "OIDC delegation failed",
+            extra={"error_type": type(exc).__name__},
+        )
+        raise RuntimeError("Token exchange failed") from None
+
+
+def _build_fixed_client(
+    base_url: str,
+    fixed_token: str,
+    profile: ResolvedTLSProfile,
+    runtime: Any | None,
+) -> ApiClientSystem:
+    """Path 2: Fixed Credentials (AUDIOBOOKSHELF_TOKEN)."""
+    try:
+        return ApiClientSystem(
             base_url=base_url,
             token=fixed_token,
             tls_profile=profile,
@@ -146,6 +157,39 @@ def get_client(
             "AUTHENTICATION ERROR: Failed to instantiate the client "
             f"({type(exc).__name__})"
         ) from None
+
+
+def get_client(
+    url: str | None = None,
+    token: str | None = None,
+    tls_profile: ResolvedTLSProfile | None = None,
+    config: dict[str, Any] | None = None,
+) -> ApiClientSystem:
+    """Get or create a singleton API client (OIDC delegation or fixed credentials).
+
+    Credentials resolve through the shared config layer (the one XDG
+    ``config.json`` / env) at call time, not frozen at import.
+    """
+    global _client
+
+    from agent_utilities.mcp.delegated_auth import is_delegation_enabled
+
+    delegated = is_delegation_enabled(config)
+    explicit = any(value is not None for value in (url, token, tls_profile))
+    if not delegated and not explicit and _client is not None:
+        return _client
+
+    runtime, base_url, fixed_token, profile = _resolve_runtime_and_endpoint(
+        explicit, url, token, tls_profile
+    )
+    _validate_credentials(base_url, delegated, fixed_token, runtime)
+    profile = profile or resolve_configured_tls_profile("audiobookshelf")
+
+    if delegated:
+        return _build_delegated_client(config, base_url, profile, runtime)
+
+    logger.info("Using fixed credentials")
+    client = _build_fixed_client(base_url, fixed_token, profile, runtime)
 
     if runtime is not None:
         # ApiClientSystem now owns cleanup for the transferred TLS profile.
