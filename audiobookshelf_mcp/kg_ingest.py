@@ -123,6 +123,22 @@ def media_store() -> Any | None:
 # --------------------------------------------------------------------------- #
 # Domain mappers — Audiobookshelf records → typed entity / document dicts.     #
 # --------------------------------------------------------------------------- #
+def _unwrap_dict(resp: dict[str, Any], keys: tuple[str, ...]) -> list[dict[str, Any]]:
+    """Extract the record list from a dict response.
+
+    Looks for a list under one of ``keys``; falls back to treating ``resp`` itself
+    as a single record when it has an ``id``.
+    """
+    for key in keys:
+        val = resp.get(key)
+        if isinstance(val, list):
+            return [r for r in val if isinstance(r, dict)]
+    # a single record dict that looks like one of our entities
+    if resp.get("id") is not None:
+        return [resp]
+    return []
+
+
 def _unwrap(resp: Any, *keys: str) -> list[dict[str, Any]]:
     """Coerce an API response into a list of record dicts.
 
@@ -136,13 +152,7 @@ def _unwrap(resp: Any, *keys: str) -> list[dict[str, Any]]:
     if isinstance(resp, list):
         return [r for r in resp if isinstance(r, dict)]
     if isinstance(resp, dict):
-        for key in keys:
-            val = resp.get(key)
-            if isinstance(val, list):
-                return [r for r in val if isinstance(r, dict)]
-        # a single record dict that looks like one of our entities
-        if resp.get("id") is not None:
-            return [resp]
+        return _unwrap_dict(resp, keys)
     return []
 
 
@@ -176,6 +186,144 @@ def _book_metadata(item: dict[str, Any]) -> dict[str, Any]:
     return media.get("metadata") or {}
 
 
+def _podcast_entity(
+    iid: Any, meta: dict[str, Any], media: dict[str, Any], item: dict[str, Any]
+) -> dict[str, Any]:
+    """Build the ``:Podcast`` entity dict for one library item."""
+    return {
+        "id": f"audiobookshelf:podcast:{iid}",
+        "node_type": "Podcast",
+        "title": meta.get("title"),
+        "mediaType": "podcast",
+        "feedUrl": meta.get("feedUrl"),
+        "publishedYear": meta.get("releaseDate"),
+        "coverPath": media.get("coverPath") or item.get("coverPath"),
+        "externalToolId": str(iid),
+    }
+
+
+def _book_entity(
+    iid: Any, meta: dict[str, Any], media: dict[str, Any], item: dict[str, Any]
+) -> dict[str, Any]:
+    """Build the ``:Book`` entity dict for one library item."""
+    return {
+        "id": f"audiobookshelf:book:{iid}",
+        "node_type": "Book",
+        "title": meta.get("title"),
+        "subtitle": meta.get("subtitle"),
+        "mediaType": "book",
+        "publishedYear": meta.get("publishedYear"),
+        "isbn": meta.get("isbn"),
+        "asin": meta.get("asin"),
+        "narrator": meta.get("narratorName"),
+        "duration": media.get("duration"),
+        "numTracks": media.get("numTracks"),
+        "coverPath": media.get("coverPath") or item.get("coverPath"),
+        "externalToolId": str(iid),
+    }
+
+
+def _book_author_links(
+    node_id: str, meta: dict[str, Any]
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    """Build the ``:Author`` entities + ``:writtenBy`` relationships for one book."""
+    entities: list[dict[str, Any]] = []
+    relationships: list[dict[str, Any]] = []
+    for author in meta.get("authors") or []:
+        aid = author.get("id") if isinstance(author, dict) else None
+        aname = author.get("name") if isinstance(author, dict) else author
+        if not aid and not aname:
+            continue
+        akey = aid or aname
+        author_id = f"audiobookshelf:author:{akey}"
+        entities.append(
+            {
+                "id": author_id,
+                "node_type": "Author",
+                "name": aname,
+                "externalToolId": str(akey),
+            }
+        )
+        relationships.append(
+            {"source": node_id, "target": author_id, "relationship": "writtenBy"}
+        )
+    return entities, relationships
+
+
+def _book_series_links(
+    node_id: str, meta: dict[str, Any]
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    """Build the ``:Series`` entities + ``:partOfSeries`` relationships for one book."""
+    entities: list[dict[str, Any]] = []
+    relationships: list[dict[str, Any]] = []
+    for series in meta.get("series") or []:
+        sid = series.get("id") if isinstance(series, dict) else None
+        sname = series.get("name") if isinstance(series, dict) else series
+        if not sid and not sname:
+            continue
+        skey = sid or sname
+        series_id = f"audiobookshelf:series:{skey}"
+        entities.append(
+            {
+                "id": series_id,
+                "node_type": "Series",
+                "name": sname,
+                "externalToolId": str(skey),
+            }
+        )
+        relationships.append(
+            {"source": node_id, "target": series_id, "relationship": "partOfSeries"}
+        )
+    return entities, relationships
+
+
+def _library_link(node_id: str, lib_id: Any) -> dict[str, Any] | None:
+    """Build the ``:inLibrary`` relationship for one node, or ``None`` if no library id."""
+    if lib_id is None:
+        return None
+    return {
+        "source": node_id,
+        "target": f"audiobookshelf:library:{lib_id}",
+        "relationship": "inLibrary",
+    }
+
+
+def _library_item_entity_and_links(
+    item: dict[str, Any], iid: Any, library_id: str | None
+) -> tuple[dict[str, Any], list[dict[str, Any]], list[dict[str, Any]]]:
+    """Build ``(node_entity, extra_entities, relationships)`` for one library item.
+
+    ``node_entity`` is the ``:Book``/``:Podcast`` node itself; ``extra_entities``
+    holds any ``:Author``/``:Series`` nodes it references (books only);
+    ``relationships`` holds the ``:writtenBy``/``:partOfSeries``/``:inLibrary`` edges.
+    """
+    media_type = item.get("mediaType") or "book"
+    meta = _book_metadata(item)
+    media = item.get("media") or {}
+    lib_id = library_id or item.get("libraryId")
+
+    extra_entities: list[dict[str, Any]] = []
+    relationships: list[dict[str, Any]] = []
+
+    if media_type == "podcast":
+        node = _podcast_entity(iid, meta, media, item)
+    else:
+        node = _book_entity(iid, meta, media, item)
+        # authors -> :Author + :writtenBy ; series -> :Series + :partOfSeries
+        author_entities, author_rels = _book_author_links(node["id"], meta)
+        series_entities, series_rels = _book_series_links(node["id"], meta)
+        extra_entities.extend(author_entities)
+        extra_entities.extend(series_entities)
+        relationships.extend(author_rels)
+        relationships.extend(series_rels)
+
+    library_rel = _library_link(node["id"], lib_id)
+    if library_rel is not None:
+        relationships.append(library_rel)
+
+    return node, extra_entities, relationships
+
+
 def ingest_library_items(
     items: Any,
     *,
@@ -202,100 +350,13 @@ def ingest_library_items(
         iid = item.get("id")
         if iid is None:
             continue
-        media_type = item.get("mediaType") or "book"
-        meta = _book_metadata(item)
-        media = item.get("media") or {}
-        lib_id = library_id or item.get("libraryId")
-
-        if media_type == "podcast":
-            node_id = f"audiobookshelf:podcast:{iid}"
-            _add(
-                {
-                    "id": node_id,
-                    "node_type": "Podcast",
-                    "title": meta.get("title"),
-                    "mediaType": "podcast",
-                    "feedUrl": meta.get("feedUrl"),
-                    "publishedYear": meta.get("releaseDate"),
-                    "coverPath": media.get("coverPath") or item.get("coverPath"),
-                    "externalToolId": str(iid),
-                }
-            )
-        else:
-            node_id = f"audiobookshelf:book:{iid}"
-            _add(
-                {
-                    "id": node_id,
-                    "node_type": "Book",
-                    "title": meta.get("title"),
-                    "subtitle": meta.get("subtitle"),
-                    "mediaType": "book",
-                    "publishedYear": meta.get("publishedYear"),
-                    "isbn": meta.get("isbn"),
-                    "asin": meta.get("asin"),
-                    "narrator": meta.get("narratorName"),
-                    "duration": media.get("duration"),
-                    "numTracks": media.get("numTracks"),
-                    "coverPath": media.get("coverPath") or item.get("coverPath"),
-                    "externalToolId": str(iid),
-                }
-            )
-            # authors -> :Author + :writtenBy
-            for author in meta.get("authors") or []:
-                aid = author.get("id") if isinstance(author, dict) else None
-                aname = author.get("name") if isinstance(author, dict) else author
-                if not aid and not aname:
-                    continue
-                akey = aid or aname
-                author_id = f"audiobookshelf:author:{akey}"
-                _add(
-                    {
-                        "id": author_id,
-                        "node_type": "Author",
-                        "name": aname,
-                        "externalToolId": str(akey),
-                    }
-                )
-                relationships.append(
-                    {
-                        "source": node_id,
-                        "target": author_id,
-                        "relationship": "writtenBy",
-                    }
-                )
-            # narrator (Person) — fall back to :narratedBy on the book props only
-            # series -> :Series + :partOfSeries
-            for series in meta.get("series") or []:
-                sid = series.get("id") if isinstance(series, dict) else None
-                sname = series.get("name") if isinstance(series, dict) else series
-                if not sid and not sname:
-                    continue
-                skey = sid or sname
-                series_id = f"audiobookshelf:series:{skey}"
-                _add(
-                    {
-                        "id": series_id,
-                        "node_type": "Series",
-                        "name": sname,
-                        "externalToolId": str(skey),
-                    }
-                )
-                relationships.append(
-                    {
-                        "source": node_id,
-                        "target": series_id,
-                        "relationship": "partOfSeries",
-                    }
-                )
-
-        if lib_id is not None:
-            relationships.append(
-                {
-                    "source": node_id,
-                    "target": f"audiobookshelf:library:{lib_id}",
-                    "relationship": "inLibrary",
-                }
-            )
+        node, extra_entities, item_relationships = _library_item_entity_and_links(
+            item, iid, library_id
+        )
+        _add(node)
+        for ent in extra_entities:
+            _add(ent)
+        relationships.extend(item_relationships)
 
     return ingest_entities(entities, relationships, client=client, graph=graph)
 
