@@ -8,6 +8,53 @@ from ..auth import get_client
 from ._params import parse_params_json
 
 
+# One tiny extracted handler per action -- each preserves the exact
+# client-method call and kwargs passthrough the if/elif chain used to
+# perform inline. Kept module-level (not nested) so each has CCN 1 and
+# is independently addressable/testable.
+async def _authors_get(client, **kwargs):
+    return await run_blocking(client.get_author_by_id, **kwargs)
+
+
+async def _authors_update(client, **kwargs):
+    return await run_blocking(client.update_author_by_id, **kwargs)
+
+
+async def _authors_delete(client, **kwargs):
+    return await run_blocking(client.delete_author_by_id, **kwargs)
+
+
+async def _authors_get_image(client, **kwargs):
+    return await run_blocking(client.get_author_image_by_id, **kwargs)
+
+
+async def _authors_add_image(client, **kwargs):
+    return await run_blocking(client.add_author_image_by_id, **kwargs)
+
+
+async def _authors_update_image(client, **kwargs):
+    return await run_blocking(client.update_author_image_by_id, **kwargs)
+
+
+async def _authors_delete_image(client, **kwargs):
+    return await run_blocking(client.delete_author_image_by_id, **kwargs)
+
+
+async def _authors_match(client, **kwargs):
+    return await run_blocking(client.match_author_by_id, **kwargs)
+
+
+_AUTHORS_ACTION_HANDLERS = {
+    "get": _authors_get,
+    "update": _authors_update,
+    "delete": _authors_delete,
+    "get_image": _authors_get_image,
+    "add_image": _authors_add_image,
+    "update_image": _authors_update_image,
+    "delete_image": _authors_delete_image,
+}
+
+
 def register_authors_tools(mcp: FastMCP):
     """Register author dynamic tools. CONCEPT:AS-OS.identity.abs-2"""
 
@@ -53,18 +100,7 @@ def register_authors_tools(mcp: FastMCP):
             return resolved
         action = resolved
 
-        if action == "get":
-            return await run_blocking(client.get_author_by_id, **kwargs)
-        if action == "update":
-            return await run_blocking(client.update_author_by_id, **kwargs)
-        if action == "delete":
-            return await run_blocking(client.delete_author_by_id, **kwargs)
-        if action == "get_image":
-            return await run_blocking(client.get_author_image_by_id, **kwargs)
-        if action == "add_image":
-            return await run_blocking(client.add_author_image_by_id, **kwargs)
-        if action == "update_image":
-            return await run_blocking(client.update_author_image_by_id, **kwargs)
-        if action == "delete_image":
-            return await run_blocking(client.delete_author_image_by_id, **kwargs)
-        return await run_blocking(client.match_author_by_id, **kwargs)
+        handler = _AUTHORS_ACTION_HANDLERS.get(action)
+        if handler is not None:
+            return await handler(client, **kwargs)
+        return await _authors_match(client, **kwargs)

@@ -8,6 +8,63 @@ from ..auth import get_client
 from ._params import parse_params_json
 
 
+# One tiny extracted handler per action -- each preserves the exact
+# client-method call and kwargs passthrough the if/elif chain used to
+# perform inline. Kept module-level (not nested) so each has CCN 1 and
+# is independently addressable/testable.
+async def _libraries_list(client, **kwargs):
+    return await run_blocking(client.get_libraries, **kwargs)
+
+
+async def _libraries_create(client, **kwargs):
+    return await run_blocking(client.create_library, **kwargs)
+
+
+async def _libraries_get(client, **kwargs):
+    return await run_blocking(client.get_library_by_id, **kwargs)
+
+
+async def _libraries_update(client, **kwargs):
+    return await run_blocking(client.update_library_by_id, **kwargs)
+
+
+async def _libraries_delete(client, **kwargs):
+    return await run_blocking(client.delete_library_by_id, **kwargs)
+
+
+async def _libraries_authors(client, **kwargs):
+    return await run_blocking(client.get_library_authors, **kwargs)
+
+
+async def _libraries_delete_issues(client, **kwargs):
+    return await run_blocking(client.delete_library_issues, **kwargs)
+
+
+async def _libraries_items(client, **kwargs):
+    return await run_blocking(client.get_library_items, **kwargs)
+
+
+async def _libraries_series(client, **kwargs):
+    return await run_blocking(client.get_library_series, **kwargs)
+
+
+async def _libraries_series_by_id(client, **kwargs):
+    return await run_blocking(client.get_library_series_by_id, **kwargs)
+
+
+_LIBRARIES_ACTION_HANDLERS = {
+    "list": _libraries_list,
+    "create": _libraries_create,
+    "get": _libraries_get,
+    "update": _libraries_update,
+    "delete": _libraries_delete,
+    "authors": _libraries_authors,
+    "delete_issues": _libraries_delete_issues,
+    "items": _libraries_items,
+    "series": _libraries_series,
+}
+
+
 def register_libraries_tools(mcp: FastMCP):
     """Register library-management dynamic tools. CONCEPT:AS-OS.identity.abs"""
 
@@ -56,22 +113,7 @@ def register_libraries_tools(mcp: FastMCP):
             return resolved
         action = resolved
 
-        if action == "list":
-            return await run_blocking(client.get_libraries, **kwargs)
-        if action == "create":
-            return await run_blocking(client.create_library, **kwargs)
-        if action == "get":
-            return await run_blocking(client.get_library_by_id, **kwargs)
-        if action == "update":
-            return await run_blocking(client.update_library_by_id, **kwargs)
-        if action == "delete":
-            return await run_blocking(client.delete_library_by_id, **kwargs)
-        if action == "authors":
-            return await run_blocking(client.get_library_authors, **kwargs)
-        if action == "delete_issues":
-            return await run_blocking(client.delete_library_issues, **kwargs)
-        if action == "items":
-            return await run_blocking(client.get_library_items, **kwargs)
-        if action == "series":
-            return await run_blocking(client.get_library_series, **kwargs)
-        return await run_blocking(client.get_library_series_by_id, **kwargs)
+        handler = _LIBRARIES_ACTION_HANDLERS.get(action)
+        if handler is not None:
+            return await handler(client, **kwargs)
+        return await _libraries_series_by_id(client, **kwargs)
