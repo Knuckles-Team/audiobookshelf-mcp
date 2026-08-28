@@ -43,6 +43,103 @@ def _invalid_url_text(value: str) -> bool:
     )
 
 
+def _validate_max_retries(max_retries: int) -> None:
+    if (
+        isinstance(max_retries, bool)
+        or not isinstance(max_retries, int)
+        or not 0 <= max_retries <= 10
+    ):
+        raise ParameterError("max_retries must be between 0 and 10")
+
+
+def _validate_base_url_structure(parsed: Any) -> None:
+    """Validate an already-parsed base URL's scheme/authority/query/fragment."""
+    try:
+        _ = parsed.port
+    except ValueError:
+        raise ParameterError("AUDIOBOOKSHELF_URL is invalid") from None
+    if parsed.scheme != "https" or not parsed.hostname:
+        raise ParameterError("AUDIOBOOKSHELF_URL must be an absolute HTTPS URL")
+    if parsed.username or parsed.password:
+        raise ParameterError("AUDIOBOOKSHELF_URL must not contain credentials")
+    if parsed.query or parsed.fragment:
+        raise ParameterError("AUDIOBOOKSHELF_URL must not contain a query or fragment")
+
+
+def _validate_base_url(base_url: str) -> str:
+    """Normalize and validate ``base_url``; returns the validated host string."""
+    host = str(base_url or "").strip().rstrip("/")
+    if not 1 <= len(host.encode("utf-8")) <= _MAX_URL_BYTES:
+        raise MissingParameterError("AUDIOBOOKSHELF_URL is required")
+    if _invalid_url_text(host):
+        raise ParameterError("AUDIOBOOKSHELF_URL is invalid")
+    _validate_base_url_structure(urlsplit(host))
+    return host
+
+
+def _validate_token(token: str) -> str:
+    """Validate ``token``; returns the validated credential string."""
+    credential = str(token or "")
+    if (
+        not 1 <= len(credential.encode("utf-8")) <= _MAX_TOKEN_BYTES
+        or _has_controls(credential)
+        or any(character.isspace() for character in credential)
+        or credential.startswith(_RUNTIME_REFERENCE_PREFIXES)
+    ):
+        raise MissingParameterError(
+            "AUDIOBOOKSHELF_TOKEN must be a resolved runtime credential"
+        )
+    return credential
+
+
+def _configure_authenticated_session(
+    tls_profile: ResolvedTLSProfile, credential: str
+) -> requests.Session:
+    """Build a TLS-configured, bearer-authenticated session, cleaning up on failure."""
+    try:
+        session = tls_profile.configure_requests_session(requests.Session())
+        session.headers.update({"Authorization": f"Bearer {credential}"})
+        return session
+    except Exception:
+        tls_profile.cleanup()
+        raise
+
+
+def _is_path_text_valid(rendered: str) -> bool:
+    """Whether a raw path string is well-formed (leading slash, size, no control/space)."""
+    return (
+        rendered.startswith("/")
+        and 1 <= len(rendered.encode("utf-8")) <= _MAX_PATH_BYTES
+        and not _invalid_url_text(rendered)
+    )
+
+
+def _is_relative_path_structure_valid(parsed: Any) -> bool:
+    """Whether a parsed path carries no authority/query/fragment/traversal segment."""
+    if parsed.scheme or parsed.netloc or parsed.query or parsed.fragment:
+        return False
+    return not any(segment in {".", ".."} for segment in parsed.path.split("/"))
+
+
+def _is_valid_relative_path(rendered: str, parsed: Any) -> bool:
+    """Whether ``rendered``/its pre-parsed form is a safe same-authority relative path."""
+    return _is_path_text_valid(rendered) and _is_relative_path_structure_valid(parsed)
+
+
+def _raise_for_status(response: requests.Response) -> None:
+    """Close+raise the right typed error for an unsuccessful response; no-op on 2xx."""
+    if response.status_code == 401:
+        response.close()
+        raise AuthError("Audiobookshelf rejected the active credential")
+    if response.status_code == 403:
+        response.close()
+        raise UnauthorizedError("Audiobookshelf denied the requested operation")
+    if not 200 <= response.status_code < 300:
+        status = response.status_code
+        response.close()
+        raise ApiError(f"Audiobookshelf API returned HTTP {status}")
+
+
 class ApiClientBase:
     """Base client used by every Audiobookshelf API domain mixin."""
 
@@ -53,56 +150,16 @@ class ApiClientBase:
         tls_profile: ResolvedTLSProfile | None = None,
         max_retries: int = 3,
     ) -> None:
-        if (
-            isinstance(max_retries, bool)
-            or not isinstance(max_retries, int)
-            or not 0 <= max_retries <= 10
-        ):
-            raise ParameterError("max_retries must be between 0 and 10")
-
-        host = str(base_url or "").strip().rstrip("/")
-        if not 1 <= len(host.encode("utf-8")) <= _MAX_URL_BYTES:
-            raise MissingParameterError("AUDIOBOOKSHELF_URL is required")
-        if _invalid_url_text(host):
-            raise ParameterError("AUDIOBOOKSHELF_URL is invalid")
-        parsed = urlsplit(host)
-        try:
-            _ = parsed.port
-        except ValueError:
-            raise ParameterError("AUDIOBOOKSHELF_URL is invalid") from None
-        if parsed.scheme != "https" or not parsed.hostname:
-            raise ParameterError("AUDIOBOOKSHELF_URL must be an absolute HTTPS URL")
-        if parsed.username or parsed.password:
-            raise ParameterError("AUDIOBOOKSHELF_URL must not contain credentials")
-        if parsed.query or parsed.fragment:
-            raise ParameterError(
-                "AUDIOBOOKSHELF_URL must not contain a query or fragment"
-            )
-
-        credential = str(token or "")
-        if (
-            not 1 <= len(credential.encode("utf-8")) <= _MAX_TOKEN_BYTES
-            or _has_controls(credential)
-            or any(character.isspace() for character in credential)
-            or credential.startswith(_RUNTIME_REFERENCE_PREFIXES)
-        ):
-            raise MissingParameterError(
-                "AUDIOBOOKSHELF_TOKEN must be a resolved runtime credential"
-            )
+        _validate_max_retries(max_retries)
+        host = _validate_base_url(base_url)
+        credential = _validate_token(token)
 
         self.base_url = host
         self.max_retries = max_retries
         self.tls_profile = tls_profile or resolve_configured_tls_profile(
             "audiobookshelf"
         )
-        try:
-            self.session = self.tls_profile.configure_requests_session(
-                requests.Session()
-            )
-            self.session.headers.update({"Authorization": f"Bearer {credential}"})
-        except Exception:
-            self.tls_profile.cleanup()
-            raise
+        self.session = _configure_authenticated_session(self.tls_profile, credential)
 
     def close(self) -> None:
         """Release the HTTP session and temporary TLS material."""
@@ -126,16 +183,7 @@ class ApiClientBase:
     def _resolve_url(self, path: str) -> str:
         rendered = str(path or "")
         parsed = urlsplit(rendered)
-        if (
-            not rendered.startswith("/")
-            or not 1 <= len(rendered.encode("utf-8")) <= _MAX_PATH_BYTES
-            or _invalid_url_text(rendered)
-            or parsed.scheme
-            or parsed.netloc
-            or parsed.query
-            or parsed.fragment
-            or any(segment in {".", ".."} for segment in parsed.path.split("/"))
-        ):
+        if not _is_valid_relative_path(rendered, parsed):
             raise ParameterError("API path is invalid")
         resolved = f"{self.base_url}{rendered}"
         configured = urlsplit(self.base_url)
@@ -143,6 +191,41 @@ class ApiClientBase:
         if target.scheme != configured.scheme or target.netloc != configured.netloc:
             raise ParameterError("API request authority differs from configuration")
         return resolved
+
+    def _send_once(
+        self,
+        method: str,
+        url: str,
+        params: dict[str, Any] | None,
+        json: Any | None,
+    ) -> requests.Response:
+        try:
+            return self.session.request(
+                method,
+                url,
+                params=params or None,
+                json=json,
+                timeout=60.0,
+                allow_redirects=False,
+                stream=True,
+            )
+        except requests.RequestException:
+            raise ApiError("Audiobookshelf API request failed") from None
+
+    def _should_retry(self, response: requests.Response, attempt: int) -> bool:
+        return (
+            response.status_code in _TRANSIENT_STATUSES
+            and attempt < self.max_retries
+        )
+
+    def _finish_response(self, response: requests.Response) -> Any:
+        _raise_for_status(response)
+        try:
+            return self._decode(response)
+        except requests.RequestException:
+            raise ApiError("Audiobookshelf API response failed") from None
+        finally:
+            response.close()
 
     def request(
         self,
@@ -159,43 +242,14 @@ class ApiClientBase:
 
         attempt = 0
         while True:
-            try:
-                response = self.session.request(
-                    normalized_method,
-                    url,
-                    params=params or None,
-                    json=json,
-                    timeout=60.0,
-                    allow_redirects=False,
-                    stream=True,
-                )
-            except requests.RequestException:
-                raise ApiError("Audiobookshelf API request failed") from None
-            if (
-                response.status_code in _TRANSIENT_STATUSES
-                and attempt < self.max_retries
-            ):
+            response = self._send_once(normalized_method, url, params, json)
+            if self._should_retry(response, attempt):
                 delay = self._retry_delay(response, attempt)
                 response.close()
                 time.sleep(delay)
                 attempt += 1
                 continue
-            if response.status_code == 401:
-                response.close()
-                raise AuthError("Audiobookshelf rejected the active credential")
-            if response.status_code == 403:
-                response.close()
-                raise UnauthorizedError("Audiobookshelf denied the requested operation")
-            if not 200 <= response.status_code < 300:
-                status = response.status_code
-                response.close()
-                raise ApiError(f"Audiobookshelf API returned HTTP {status}")
-            try:
-                return self._decode(response)
-            except requests.RequestException:
-                raise ApiError("Audiobookshelf API response failed") from None
-            finally:
-                response.close()
+            return self._finish_response(response)
 
     @staticmethod
     def _retry_delay(response: requests.Response, attempt: int) -> float:
