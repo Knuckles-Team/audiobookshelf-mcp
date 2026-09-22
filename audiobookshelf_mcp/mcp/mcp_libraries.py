@@ -81,6 +81,7 @@ def register_libraries_tools(mcp: FastMCP):
             "items",
             "list",
             "series",
+            "series_by_id",
             "update",
         ] = Field(
             description=(
