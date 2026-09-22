@@ -1,3 +1,5 @@
+from typing import Literal
+
 from agent_utilities.mcp.action_dispatch import resolve_action
 from agent_utilities.mcp.concurrency import run_blocking
 from fastmcp import Context, FastMCP
@@ -70,7 +72,17 @@ def register_libraries_tools(mcp: FastMCP):
 
     @mcp.tool(tags={"libraries"})
     async def library_operations(
-        action: str = Field(
+        action: Literal[
+            "authors",
+            "create",
+            "delete",
+            "delete_issues",
+            "get",
+            "items",
+            "list",
+            "series",
+            "update",
+        ] = Field(
             description=(
                 "Action to perform. One of: 'list', 'create', 'get', 'update', "
                 "'delete', 'authors', 'delete_issues', 'items', 'series', "
