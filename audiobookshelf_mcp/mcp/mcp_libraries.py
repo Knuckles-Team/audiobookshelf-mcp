@@ -70,7 +70,18 @@ _LIBRARIES_ACTION_HANDLERS = {
 def register_libraries_tools(mcp: FastMCP):
     """Register library-management dynamic tools. CONCEPT:AS-OS.identity.abs"""
 
-    @mcp.tool(tags={"libraries"})
+    @mcp.tool(
+        tags={"libraries"},
+        annotations={
+            "readOnlyHint": False,
+            "destructiveHint": True,
+            "idempotentHint": False,
+            "openWorldHint": True,
+        },
+        meta={
+            "eg.annotations": {"modalities_in": ["text"], "modalities_out": ["text"]}
+        },
+    )
     async def library_operations(
         action: Literal[
             "authors",
