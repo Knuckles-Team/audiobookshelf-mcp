@@ -138,7 +138,6 @@ _6 action-routed tool(s) · 46 verbose 1:1 tool(s). Each is enabled unless its `
 
 ```bash
 uvx --from "audiobookshelf-mcp[mcp]" audiobookshelf-mcp      # MCP server
-uvx --from "audiobookshelf-mcp[agent]" audiobookshelf-agent  # A2A agent server (full)
 ```
 
 ### Install with `pip` / `uv`
@@ -148,36 +147,25 @@ Pick the extra that matches what you want to run:
 | Extra | Installs | Use when |
 |-------|----------|----------|
 | `audiobookshelf-mcp[mcp]` | MCP server (`agent-utilities[mcp]`) plus the mandatory full epistemic-graph base runtime | You run the **MCP server** without the agent UI/runtime |
-| `audiobookshelf-mcp[agent]` | Current agent runtime (`agent-utilities[agent-runtime,logfire]`) | You run the **integrated agent** |
-| `audiobookshelf-mcp[all]` | MCP + agent runtime + Logfire | Development or both surfaces |
 
 ```bash
 # MCP server only (recommended for tool hosting)
 uv pip install "audiobookshelf-mcp[mcp]"
-
-# Full agent runtime (Pydantic AI + epistemic-graph engine)
-uv pip install "audiobookshelf-mcp[agent]"
-
-# Everything (development)
-uv pip install "audiobookshelf-mcp[all]"      # or: python -m pip install "audiobookshelf-mcp[all]"
 ```
 
-### Container images (`:mcp` vs `:agent`)
+### Container images (`:mcp`)
 
-One multi-stage `docker/Dockerfile` builds two right-sized images, selected by `--target`:
+One `docker/Dockerfile` builds a single slim MCP-server image:
 
-| Image tag | Build target | Contents | Entrypoint |
-|-----------|--------------|----------|------------|
-| `audiobookshelf-mcp:mcp` | `--target mcp` | MCP server plus the mandatory full epistemic-graph base dependency | `audiobookshelf-mcp` |
-| `audiobookshelf-mcp@sha256:<digest>` | `--target agent` (default) | MCP dependencies plus the current Pydantic-AI agent runtime | `audiobookshelf-agent` |
+| Image tag | Contents | Entrypoint |
+|-----------|----------|------------|
+| `example/audiobookshelf-mcp:mcp` | `audiobookshelf-mcp[mcp]` -- connector-focused, includes `epistemic-graph[full]` | `audiobookshelf-mcp` |
 
 ```bash
-docker build --target mcp -t audiobookshelf-mcp:mcp -f docker/Dockerfile .
-docker build --target agent -t audiobookshelf-mcp:agent-local -f docker/Dockerfile .
+docker build -t example/audiobookshelf-mcp:mcp docker/   # connector-focused MCP server
 ```
 
-`docker/mcp.compose.yml` runs the MCP-only `:mcp` server; `docker/agent.compose.yml` runs the
-agent (`immutable agent digest`) with a co-located `:mcp` sidecar.
+`docker/mcp.compose.yml` runs the connector-focused `:mcp` server.
 
 ### Knowledge-graph database (`epistemic-graph`)
 
@@ -454,7 +442,7 @@ to **"deploy `audiobookshelf-mcp` with agent-utilities-deployment"**.
 | Install mode | Command |
 |------|---------|
 | Installed package | `uv tool install "audiobookshelf-mcp[mcp]"`, then run `audiobookshelf-mcp` |
-| Editable source | `uv pip install -e ".[agent]"`, then run `audiobookshelf-mcp` |
+| Editable source | `uv pip install -e ".[mcp]"`, then run `audiobookshelf-mcp` |
 | Immutable container | deploy `registry.example.invalid/audiobookshelf-mcp@sha256:<digest>` through the operator-selected orchestrator |
 
 The repository embeds no deployment profile, credential value, certificate path, or
