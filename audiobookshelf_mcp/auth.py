@@ -17,13 +17,11 @@ material or a machine-specific trust path.
 
 from typing import Any
 
-from agent_utilities.base_utilities import get_logger
-from agent_utilities.core.config import setting
-from agent_utilities.core.exceptions import AuthError, UnauthorizedError
-from agent_utilities.core.transport_security import (
-    ResolvedTLSProfile,
-    resolve_configured_tls_profile,
-)
+from agent_connector_sdk.config import setting
+from agent_connector_sdk.exceptions import AuthError, UnauthorizedError
+from agent_connector_sdk.tls.profile import ResolvedTLSProfile
+from agent_connector_sdk.tls.resolve import resolve_tls_profile
+from agent_connector_sdk.utilities import get_logger
 
 from .api import ApiClientSystem
 
@@ -183,7 +181,7 @@ def get_client(
         explicit, url, token, tls_profile
     )
     _validate_credentials(base_url, delegated, fixed_token, runtime)
-    profile = profile or resolve_configured_tls_profile("audiobookshelf")
+    profile = profile or resolve_tls_profile("audiobookshelf")
 
     if delegated:
         return _build_delegated_client(config, base_url, profile, runtime)

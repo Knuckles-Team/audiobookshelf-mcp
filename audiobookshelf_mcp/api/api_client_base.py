@@ -9,17 +9,15 @@ from typing import Any
 from urllib.parse import quote, urlsplit
 
 import requests
-from agent_utilities.core.exceptions import (
+from agent_connector_sdk.exceptions import (
     ApiError,
     AuthError,
     MissingParameterError,
     ParameterError,
     UnauthorizedError,
 )
-from agent_utilities.core.transport_security import (
-    ResolvedTLSProfile,
-    resolve_configured_tls_profile,
-)
+from agent_connector_sdk.tls.profile import ResolvedTLSProfile
+from agent_connector_sdk.tls.resolve import resolve_tls_profile
 
 _ALLOWED_METHODS = frozenset({"DELETE", "GET", "PATCH", "POST", "PUT"})
 _TRANSIENT_STATUSES = frozenset({429, 502, 503, 504})
@@ -156,9 +154,7 @@ class ApiClientBase:
 
         self.base_url = host
         self.max_retries = max_retries
-        self.tls_profile = tls_profile or resolve_configured_tls_profile(
-            "audiobookshelf"
-        )
+        self.tls_profile = tls_profile or resolve_tls_profile("audiobookshelf")
         self.session = _configure_authenticated_session(self.tls_profile, credential)
 
     def close(self) -> None:
@@ -214,8 +210,7 @@ class ApiClientBase:
 
     def _should_retry(self, response: requests.Response, attempt: int) -> bool:
         return (
-            response.status_code in _TRANSIENT_STATUSES
-            and attempt < self.max_retries
+            response.status_code in _TRANSIENT_STATUSES and attempt < self.max_retries
         )
 
     def _finish_response(self, response: requests.Response) -> Any:
