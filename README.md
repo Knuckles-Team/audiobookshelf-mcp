@@ -41,14 +41,14 @@ This repository is actively maintained - Contributions are welcome!
 ## Key Features
 
 - **Action-routed MCP tools** — each domain is exposed as a single MCP tool that routes
-  to many underlying operations via an `action` argument, keeping the tool surface small.
+  to multiple underlying operations via an `action` argument, keeping the tool surface small.
 - **Three interfaces, one package** — use it as a Python **API client**, an **MCP server**
   (`stdio` / `streamable-http` / `sse`), or a Pydantic-AI **A2A agent**.
 - **`agent-utilities` native** — built on the shared framework (auth, action router,
   telemetry, governance) for fleet consistency.
-- **Verified transport profiles** — outbound HTTP uses AgentConfig-backed TLS trust;
+- **Checked transport profiles** — outbound HTTP uses AgentConfig-backed TLS trust;
   peer and hostname verification cannot be disabled by this connector.
-- **Governed graph capability inputs** — ships one comprehensive skill, a public-model
+- **Governed graph capability inputs** — ships one complete skill, a public-model
   ontology, and a neutral source preset, but no direct graph-write or raw-media tool.
 - **Per-tool toggles** — enable or disable each tool domain with environment switches.
 - **Enterprise-ready** — OTEL/Langfuse telemetry and optional Eunomia access governance.
@@ -143,12 +143,12 @@ uvx --from "audiobookshelf-mcp[agent]" audiobookshelf-agent  # A2A agent server 
 
 ### Install with `pip` / `uv`
 
-Pick the extra that matches what you want to run:
+Pick the extra that matches what the operator want to run:
 
 | Extra | Installs | Use when |
 |-------|----------|----------|
-| `audiobookshelf-mcp[mcp]` | MCP server (`agent-utilities[mcp]`) plus the mandatory full epistemic-graph base runtime | You run the **MCP server** without the agent UI/runtime |
-| `audiobookshelf-mcp[agent]` | Current agent runtime (`agent-utilities[agent-runtime,logfire]`) | You run the **integrated agent** |
+| `audiobookshelf-mcp[mcp]` | MCP server (`agent-utilities[mcp]`) plus the mandatory full epistemic-graph base runtime | The operator run the **MCP server** without the agent UI/runtime |
+| `audiobookshelf-mcp[agent]` | Current agent runtime (`agent-utilities[agent-runtime,logfire]`) | The operator run the **integrated agent** |
 | `audiobookshelf-mcp[all]` | MCP + agent runtime + Logfire | Development or both surfaces |
 
 ```bash
@@ -189,12 +189,12 @@ shared production authority, follow the
 
 ### Console scripts
 
-After installation the following entry points are available on your `PATH`:
+After installation the following entry points are available on the operator's `PATH`:
 
 | Command | Description |
 |---------|-------------|
-| `audiobookshelf-mcp` | Launch the MCP server |
-| `audiobookshelf-agent` | Launch the A2A agent server |
+| `audiobookshelf-mcp` | Start the MCP server |
+| `audiobookshelf-agent` | Start the A2A agent server |
 
 ## Usage
 

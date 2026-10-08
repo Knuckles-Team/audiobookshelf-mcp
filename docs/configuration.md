@@ -79,7 +79,7 @@ mapping, local path, or external-live claim. Regenerate and re-sign the bundle a
 any tool or ontology change before governed synchronization is enabled.
 
 The provider exposes no graph-write or raw-media-ingestion tool. GraphOS may synchronize
-catalog metadata only after it compiles and verifies the exact live capability and an
+catalog metadata only after it compiles and checks the exact live capability and an
 operator approves tenant, ACL, classification, retention, provenance, redaction, and
 deletion policy. Missing governance must fail closed rather than widening access.
 

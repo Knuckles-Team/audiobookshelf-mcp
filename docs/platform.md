@@ -10,7 +10,7 @@ and upgrades remain outside this connector repository.
 
 ## Required service contract
 
-- A reachable absolute HTTPS Audiobookshelf API endpoint supplied at runtime.
+- A reachable absolute HTTPS Audiobookshelf API endpoint provided at runtime.
 - A least-privilege API token, or a compatible delegated identity path.
 - A valid certificate chain; private trust is selected through an AgentConfig TLS
   profile.
