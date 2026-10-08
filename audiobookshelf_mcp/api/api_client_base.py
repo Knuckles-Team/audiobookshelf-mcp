@@ -214,8 +214,7 @@ class ApiClientBase:
 
     def _should_retry(self, response: requests.Response, attempt: int) -> bool:
         return (
-            response.status_code in _TRANSIENT_STATUSES
-            and attempt < self.max_retries
+            response.status_code in _TRANSIENT_STATUSES and attempt < self.max_retries
         )
 
     def _finish_response(self, response: requests.Response) -> Any:
