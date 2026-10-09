@@ -1,33 +1,38 @@
-"""Native epistemic-graph ingestion for Audiobookshelf records (typed graph nodes).
+"""Epistemic-graph ingestion for Audiobookshelf records (typed graph nodes).
 
-CONCEPT:AU-KG.ingest.enterprise-source-extractor. The package natively pushes its data
-into the ONE epistemic-graph knowledge graph as **typed OWL nodes** (``:Library``,
-``:Book``, ``:Podcast``, ``:Author``, ``:Series``) + links, matching the classes federated
-by ``audiobookshelf_mcp.ontology``.
+CONCEPT:AU-KG.ingest.enterprise-source-extractor. The package pushes its data into
+the ONE epistemic-graph knowledge graph as **typed OWL nodes** (``:Library``,
+``:Book``, ``:Podcast``, ``:Author``, ``:Series``) + links, matching the classes
+federated by ``audiobookshelf_mcp.ontology``, through ``agent_connector_sdk.ingest``
+-- the generated ``SourceIngest`` client, not a local ingestion helper.
 
-The txn write path itself is the shared fleet primitive
-``agent_utilities.knowledge_graph.memory.native_ingest`` — this module is only the thin
-**mapper** (Audiobookshelf records → entity / document dicts); there is no self-contained
-fallback transaction here.
-
-The MCP tool surface (``audiobookshelf_mcp.mcp.mcp_ingest``) exposes these as best-effort
-tools that must never raise on an unreachable/misconfigured KG stack, so
-``ingest_entities`` / ``ingest_documents`` stay **best-effort**: they return ``None``
-(never raise) for empty input or when the shared primitive reports
-:class:`NativeIngestError` (no reachable engine, or a malformed record). Node ids follow
-``audiobookshelf:<class>:<externalId>`` and each ``node_type`` matches a class the
-package's ontology federates.
+The MCP tool surface exposes these as best-effort tools that must never raise on an
+unreachable/misconfigured KG stack, so ``ingest_entities`` / ``ingest_documents`` (and
+the mappers built on them) stay **best-effort**: they return ``None`` (never raise) for
+empty input or when the SDK facade reports :class:`IngestError` /
+:class:`IngestUnavailableError` (no reachable engine, or a malformed record). Node ids
+follow ``audiobookshelf:<class>:<externalId>`` and each ``node_type`` matches a class
+the package's ontology federates.
 """
 
 from __future__ import annotations
 
+import hashlib
 import logging
 from typing import Any
 
-from agent_utilities.knowledge_graph.memory.native_ingest import (
-    NativeIngestError,
-    ingest_documents as _native_ingest_documents,
-    ingest_entities as _native_ingest_entities,
+from agent_connector_sdk.ingest import (
+    ChangeSet,
+    Document,
+    Entity,
+    IngestBinding,
+    IngestError,
+    IngestUnavailableError,
+    KnowledgeIngest,
+    MediaAsset,
+    Relationship,
+    current_ingest,
+    ingest_changes,
 )
 
 logger = logging.getLogger("audiobookshelf_mcp.kg")
@@ -35,48 +40,75 @@ logger = logging.getLogger("audiobookshelf_mcp.kg")
 _SOURCE = "audiobookshelf-mcp"
 _DOMAIN = "audiobookshelf"
 
+_BINDING = IngestBinding(connector=_SOURCE, stream=_DOMAIN)
 
-def ingest_entities(
+_ENTITY_RESERVED_KEYS = frozenset({"id", "node_type"})
+_RELATIONSHIP_RESERVED_KEYS = frozenset({"source", "target", "relationship"})
+
+
+def _to_entity(record: dict[str, Any]) -> Entity:
+    return Entity(
+        id=record.get("id"),
+        node_type=record.get("node_type"),
+        properties={
+            key: value
+            for key, value in record.items()
+            if key not in _ENTITY_RESERVED_KEYS
+        },
+    )
+
+
+def _to_relationship(record: dict[str, Any]) -> Relationship:
+    properties = {
+        key: value
+        for key, value in record.items()
+        if key not in _RELATIONSHIP_RESERVED_KEYS
+    }
+    return Relationship(
+        source=record["source"],
+        target=record["target"],
+        relationship=record["relationship"],
+        properties=properties or None,
+    )
+
+
+async def ingest_entities(
     entities: list[dict[str, Any]],
     relationships: list[dict[str, Any]] | None = None,
     *,
-    source: str = _SOURCE,
-    domain: str = _DOMAIN,
-    client: Any | None = None,
-    graph: str | None = None,
+    ingest: KnowledgeIngest | None = None,
 ) -> dict[str, int] | None:
     """Write typed OWL nodes (+ edges) into the engine. Best-effort, never raises.
 
     ``entities``: ``[{"id":..., "node_type":<owl:Class>, ...props}]``.
     ``relationships``: ``[{"source":id, "target":id, "relationship":<link>}]``.
     Returns ``{"nodes":n, "edges":m}`` or ``None`` (empty input / no reachable engine /
-    malformed record). ``client``/``graph`` may be injected (tests); otherwise the
-    process-owned governed authority is resolved on demand.
+    malformed record -- a missing ``id``/``node_type`` is dropped rather than raised).
+    ``ingest`` may be injected (tests); otherwise the process-installed
+    :class:`KnowledgeIngest` is resolved on demand.
     """
-    entities = [e for e in (entities or []) if e.get("id")]
+    entities = [e for e in (entities or []) if e.get("id") and e.get("node_type")]
     if not entities:
         return None
+    change_set = ChangeSet(
+        entities=tuple(_to_entity(entity) for entity in entities),
+        relationships=tuple(
+            _to_relationship(relationship) for relationship in relationships or ()
+        ),
+    )
     try:
-        return _native_ingest_entities(
-            entities,
-            relationships,
-            source=source,
-            domain=domain,
-            client=client,
-            graph=graph,
-        )
-    except NativeIngestError as exc:
+        service = ingest or current_ingest()
+        receipt = await service.submit(_BINDING, change_set)
+    except (IngestError, IngestUnavailableError) as exc:
         logger.debug("KG ingest unavailable/failed: %s", exc)
         return None
+    return {"nodes": receipt.affected_count, "edges": receipt.relationship_count}
 
 
-def ingest_documents(
+async def ingest_documents(
     documents: list[dict[str, Any]],
     *,
-    source: str = _SOURCE,
-    domain: str = _DOMAIN,
-    client: Any | None = None,
-    graph: str | None = None,
+    ingest: KnowledgeIngest | None = None,
 ) -> dict[str, int] | None:
     """Write text records as ``:Document`` nodes (semantic-search fodder). Best-effort.
 
@@ -85,39 +117,97 @@ def ingest_documents(
     """
     if not documents:
         return None
-    try:
-        return _native_ingest_documents(
-            documents, source=source, domain=domain, client=client, graph=graph
+    change_set = ChangeSet(
+        documents=tuple(
+            Document(
+                id=doc["id"],
+                text=doc["text"],
+                title=doc.get("title"),
+                source_uri=doc.get("source_uri"),
+                properties={
+                    key: value
+                    for key, value in doc.items()
+                    if key not in {"id", "text", "title", "source_uri"}
+                },
+            )
+            for doc in documents
         )
-    except NativeIngestError as exc:
+    )
+    try:
+        service = ingest or current_ingest()
+        receipt = await service.submit(_BINDING, change_set)
+    except (IngestError, IngestUnavailableError) as exc:
         logger.debug("KG ingest unavailable/failed: %s", exc)
         return None
+    return {"nodes": receipt.affected_count, "edges": receipt.relationship_count}
+
+
+class _SdkMediaStore:
+    """Adapts the SDK ingest facade to the old ``MediaStore.store_media(...)`` shape."""
+
+    @staticmethod
+    def store_media(
+        data: bytes,
+        *,
+        media_type: str,
+        mime_type: str,
+        source: str = _SOURCE,
+        name: str | None = None,
+        extra: dict[str, Any] | None = None,
+    ) -> Any | None:
+        return store_media(
+            data,
+            media_type=media_type,
+            mime_type=mime_type,
+            name=name,
+            extra=extra,
+        )
 
 
 def media_store() -> Any | None:
-    """Return a shared :class:`MediaStore` over a live engine (raw-blob ingestion), or ``None``."""
+    """Return a :class:`_SdkMediaStore` adapter over a configured ingest facade, or ``None``."""
     try:
-        from agent_utilities.knowledge_graph.memory import native_ingest
+        current_ingest()
+    except IngestUnavailableError as e:
+        logger.debug("KG ingest: media_store unavailable: %s", e)
+        return None
+    return _SdkMediaStore()
 
-        return native_ingest.media_store()
-    except Exception as e:  # noqa: BLE001 — shared primitive not present yet
-        logger.debug("KG ingest: shared media_store unavailable: %s", e)
-    try:
-        from agent_utilities.knowledge_graph.core.graph_compute import (
-            GraphComputeEngine,
-        )
-        from agent_utilities.knowledge_graph.memory.media_store import MediaStore
-    except Exception as e:  # noqa: BLE001 — KG stack absent
-        logger.debug("KG media ingest unavailable (import): %s", e)
+
+def store_media(
+    data: bytes,
+    *,
+    media_type: str,
+    mime_type: str,
+    name: str | None = None,
+    extra: dict[str, Any] | None = None,
+) -> Any | None:
+    """Store raw bytes as a ``MediaAsset`` via the SDK ingest facade. Best-effort, sync.
+
+    Uses the SDK's synchronous ``ingest_changes`` bridge (``submit_blocking`` under the
+    hood) since this is called from plain synchronous code, never from an
+    ``@mcp.tool()`` handler on the engine's own event loop. Returns an object exposing
+    ``.asset_id``/``.digest`` on success, or ``None`` (no bytes / no reachable engine /
+    store failed).
+    """
+    if not data:
         return None
+    asset = MediaAsset(data=data, mime_type=mime_type, name=name or "", properties=extra or {})
+    change_set = ChangeSet(media=(asset,))
+    binding = IngestBinding(connector=_SOURCE, stream=_DOMAIN, media_type=media_type)
     try:
-        engine = GraphComputeEngine()
-        if getattr(engine, "_client", None) is None:
-            return None
-        return MediaStore(engine)
-    except Exception as e:  # noqa: BLE001 — no reachable engine
-        logger.debug("KG media ingest: engine unreachable: %s", e)
+        ingest_changes(binding, change_set)
+    except (IngestError, IngestUnavailableError) as exc:
+        logger.debug("KG media ingest unavailable/failed: %s", exc)
         return None
+    digest = hashlib.sha256(data).hexdigest()
+
+    class _StoredAsset:
+        asset_id = asset.id or f"blob:{digest}"
+
+    stored = _StoredAsset()
+    stored.digest = digest
+    return stored
 
 
 # --------------------------------------------------------------------------- #
@@ -156,11 +246,10 @@ def _unwrap(resp: Any, *keys: str) -> list[dict[str, Any]]:
     return []
 
 
-def ingest_libraries(
+async def ingest_libraries(
     libraries: Any,
     *,
-    client: Any | None = None,
-    graph: str | None = None,
+    ingest: KnowledgeIngest | None = None,
 ) -> dict[str, int] | None:
     """Map Audiobookshelf library records → ``:Library`` nodes and ingest."""
     entities: list[dict[str, Any]] = []
@@ -178,7 +267,7 @@ def ingest_libraries(
                 "externalToolId": str(lid),
             }
         )
-    return ingest_entities(entities, client=client, graph=graph)
+    return await ingest_entities(entities, ingest=ingest)
 
 
 def _book_metadata(item: dict[str, Any]) -> dict[str, Any]:
@@ -324,12 +413,11 @@ def _library_item_entity_and_links(
     return node, extra_entities, relationships
 
 
-def ingest_library_items(
+async def ingest_library_items(
     items: Any,
     *,
     library_id: str | None = None,
-    client: Any | None = None,
-    graph: str | None = None,
+    ingest: KnowledgeIngest | None = None,
 ) -> dict[str, int] | None:
     """Map library items → ``:Book`` / ``:Podcast`` nodes with author/series/library links.
 
@@ -358,15 +446,14 @@ def ingest_library_items(
             _add(ent)
         relationships.extend(item_relationships)
 
-    return ingest_entities(entities, relationships, client=client, graph=graph)
+    return await ingest_entities(entities, relationships, ingest=ingest)
 
 
-def ingest_authors(
+async def ingest_authors(
     authors: Any,
     *,
     library_id: str | None = None,
-    client: Any | None = None,
-    graph: str | None = None,
+    ingest: KnowledgeIngest | None = None,
 ) -> dict[str, int] | None:
     """Map author records → ``:Author`` nodes (+ ``:inLibrary`` when a library is known)."""
     entities: list[dict[str, Any]] = []
@@ -395,4 +482,4 @@ def ingest_authors(
                     "relationship": "inLibrary",
                 }
             )
-    return ingest_entities(entities, relationships, client=client, graph=graph)
+    return await ingest_entities(entities, relationships, ingest=ingest)
