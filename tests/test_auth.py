@@ -1,3 +1,4 @@
+from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -12,7 +13,8 @@ def test_get_client_auth_error_is_sanitized():
     auth_module._client = None
     profile = MagicMock()
     with patch(
-        "agent_utilities.mcp.delegated_auth.is_delegation_enabled", return_value=False
+        "agent_connector_sdk.auth.delegation.DelegationSettings.from_settings",
+        return_value=SimpleNamespace(enabled=False),
     ):
         with patch(
             "audiobookshelf_mcp.auth.ApiClientSystem",
@@ -39,8 +41,8 @@ def test_explicit_connection_inputs_are_request_scoped():
     created = object()
     try:
         with patch(
-            "agent_utilities.mcp.delegated_auth.is_delegation_enabled",
-            return_value=False,
+            "agent_connector_sdk.auth.delegation.DelegationSettings.from_settings",
+            return_value=SimpleNamespace(enabled=False),
         ):
             with patch("audiobookshelf_mcp.auth.ApiClientSystem", return_value=created):
                 result = get_client(
@@ -70,8 +72,8 @@ def test_selected_agent_config_profile_is_resolved_ephemerally():
 
     try:
         with patch(
-            "agent_utilities.mcp.delegated_auth.is_delegation_enabled",
-            return_value=False,
+            "agent_connector_sdk.auth.delegation.DelegationSettings.from_settings",
+            return_value=SimpleNamespace(enabled=False),
         ):
             with patch(
                 "audiobookshelf_mcp.auth.setting", side_effect=configured_setting
