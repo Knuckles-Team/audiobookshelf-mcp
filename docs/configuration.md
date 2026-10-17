@@ -7,7 +7,7 @@ ship an instance profile or a customized Audiobookshelf ontology.
 
 ## Configuration boundary
 
-The connector reads runtime values through the Agent Utilities configuration layer.
+The connector reads runtime values through the Agent Connector SDK configuration layer.
 For a standalone process, inject values through its process environment. For GraphOS,
 define a deployment-owned `PROVIDER_CONFIGS` entry in AgentConfig and select its neutral
 name with the child declaration's `provider_profile` field. The profile carries only an
@@ -100,8 +100,8 @@ After runtime configuration is injected, validate the shared boundary without
 printing resolved values:
 
 ```bash
-agent-utilities-doctor --only config provider_profiles transport_security mcp_fleet_secrets mcp_fleet
+agent-connector-sdk-doctor --only config provider_profiles transport_security mcp_fleet_secrets mcp_fleet
 ```
 
-Use `agent-utilities-doctor --live` only when bounded calls to the configured service
+Use `agent-connector-sdk-doctor --live` only when bounded calls to the configured service
 and observability backends are authorized.

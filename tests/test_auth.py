@@ -57,18 +57,15 @@ def test_explicit_connection_inputs_are_request_scoped():
 
 
 @pytest.mark.concept("AS-OS.identity.abs")
-def test_selected_agent_config_profile_is_resolved_ephemerally():
-    """GraphOS-selected provider profiles supply endpoint, token, and TLS in memory."""
+def test_fixed_credentials_resolve_from_settings():
+    """Endpoint and token come from the shared config layer when not passed."""
     auth_module._client = None
-    runtime = MagicMock()
-    runtime.endpoint = "https://service.example.invalid"
-    runtime.credentials = {"TOKEN": "runtime-token"}
     tls = MagicMock()
-    runtime.tls = tls
     created = MagicMock()
-
-    def configured_setting(name: str, default: str = "") -> str:
-        return "media-service" if name == "AGENT_PROVIDER_PROFILE" else default
+    values = {
+        "AUDIOBOOKSHELF_URL": "https://service.example.invalid",
+        "AUDIOBOOKSHELF_TOKEN": "runtime-token",
+    }
 
     try:
         with patch(
@@ -76,11 +73,12 @@ def test_selected_agent_config_profile_is_resolved_ephemerally():
             return_value=SimpleNamespace(enabled=False),
         ):
             with patch(
-                "audiobookshelf_mcp.auth.setting", side_effect=configured_setting
+                "audiobookshelf_mcp.auth.setting",
+                side_effect=lambda name, default="": values.get(name, default),
             ):
                 with patch(
-                    "agent_utilities.core.provider_runtime.resolve_selected_provider_runtime_profile",
-                    return_value=runtime,
+                    "audiobookshelf_mcp.auth.resolve_configured_tls_profile",
+                    return_value=tls,
                 ):
                     with patch(
                         "audiobookshelf_mcp.auth.ApiClientSystem",
@@ -92,7 +90,5 @@ def test_selected_agent_config_profile_is_resolved_ephemerally():
             token="runtime-token",
             tls_profile=tls,
         )
-        assert runtime.tls is None
-        runtime.close.assert_not_called()
     finally:
         auth_module._client = None
