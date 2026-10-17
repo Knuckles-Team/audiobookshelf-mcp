@@ -262,7 +262,7 @@ Tools are action-routed — pass an `action` plus a JSON `params_json` string:
 }
 ```
 
-Runtime references require an alias-aware launcher such as GraphOS. Other
+Runtime references require an alias-aware launcher such as Arbora. Other
 launchers must omit those entries and inject the resolved values through their
 own runtime secret boundary.
 
@@ -444,6 +444,6 @@ external-live certification.
 Runtime endpoints, credentials, certificate trust, identity, tenant/ACL policy,
 retention, and observability destinations are deployment inputs and are never packaged
 values. See [Configuration, trust, and privacy](docs/configuration.md) before enabling
-a network transport, GraphOS delegation, governed source synchronization, or trace
+a network transport, Arbora delegation, governed source synchronization, or trace
 export.
 <!-- GOVERNED-CAPABILITY:END -->

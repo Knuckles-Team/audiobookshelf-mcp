@@ -8,11 +8,11 @@ ship an instance profile or a customized Audiobookshelf ontology.
 ## Configuration boundary
 
 The connector reads runtime values through the Agent Connector SDK configuration layer.
-For a standalone process, inject values through its process environment. For GraphOS,
+For a standalone process, inject values through its process environment. For Arbora,
 define a deployment-owned `PROVIDER_CONFIGS` entry in AgentConfig and select its neutral
 name with the child declaration's `provider_profile` field. The profile carries only an
 `endpoint_ref`, a `TOKEN` entry in `credential_refs`, and one `tls_profile` or
-`tls_profile_ref`; GraphOS resolves them in memory and sets `AGENT_PROVIDER_PROFILE` only
+`tls_profile_ref`; Arbora resolves them in memory and sets `AGENT_PROVIDER_PROFILE` only
 for that child. No selected profile name or resolved value is packaged here.
 
 The connection inputs are:
@@ -78,7 +78,7 @@ and offline source attestation. It contains no instance URL, source record, tena
 mapping, local path, or external-live claim. Regenerate and re-sign the bundle after
 any tool or ontology change before governed synchronization is enabled.
 
-The provider exposes no graph-write or raw-media-ingestion tool. GraphOS may synchronize
+The provider exposes no graph-write or raw-media-ingestion tool. Arbora may synchronize
 catalog metadata only after it compiles and checks the exact live capability and an
 operator approves tenant, ACL, classification, retention, provenance, redaction, and
 deletion policy. Missing governance must fail closed rather than widening access.
