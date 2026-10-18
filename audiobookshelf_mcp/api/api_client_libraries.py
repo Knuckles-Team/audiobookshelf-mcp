@@ -10,8 +10,9 @@ class ApiClientLibraries(ApiClientBase):
         """List all libraries."""
         return self.request("GET", "/api/libraries")
 
-    def create_library(self, **body: Any) -> dict[str, Any]:
+    def create_library(self, body: dict[str, Any] | None = None) -> dict[str, Any]:
         """Create a new library."""
+        body = body or {}
         return self.request("POST", "/api/libraries", json=body)
 
     def get_library_by_id(self, id: str, include: str | None = None) -> dict[str, Any]:
