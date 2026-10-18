@@ -1,22 +1,32 @@
 # syntax=docker/dockerfile:1
-# MCP-only image: ships the MCP server and nothing else (no agent mode).
-#   docker build --target mcp -t <name>:mcp .
+# GENERATED from pipelines/templates/connector/Dockerfile.tmpl by
+# pipelines/scripts/connector_dockerfile.py. Do not hand-edit: change the template or
+# the connector's entry in the script's EXCEPTIONS table, then regenerate.
+#
+# Wheel-only connector image. The published audiobookshelf-mcp wheel is installed from PyPI at
+# the exact version in pyproject.toml (kept in sync by .bumpversion.cfg); no source is
+# copied into any stage, and every distribution in the closure must be a wheel
+# (--only-binary :all:). The release pipeline publishes the wheel before this build,
+# so the install retries while the new version propagates through the index.
+#
+#   docker build --target <stage> -t audiobookshelf-mcp:local -f docker/Dockerfile .
+#   stages: mcp
 FROM python:3.14-slim@sha256:cea0e6040540fb2b965b6e7fb5ffa00871e632eef63719f0ea54bca189ce14a6 AS builder-base
 COPY --from=ghcr.io/astral-sh/uv:0.11.7@sha256:240fb85ab0f263ef12f492d8476aa3a2e4e1e333f7d67fbdd923d00a506a516a /uv /uvx /bin/
-WORKDIR /src
 ENV UV_COMPILE_BYTECODE=1 \
     UV_LINK_MODE=copy \
     UV_SYSTEM_PYTHON=1 \
     UV_HTTP_TIMEOUT=3600
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends build-essential \
-    && rm -rf /var/lib/apt/lists/*
-COPY . /src
 
-# Slim MCP-only dependency closure.
 FROM builder-base AS builder-mcp
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv pip install --system --upgrade --break-system-packages ".[mcp]"
+    for attempt in 1 2 3 4 5 6 7 8 9 10; do \
+        uv pip install --system --break-system-packages --only-binary :all: \
+            --refresh-package audiobookshelf-mcp "audiobookshelf-mcp[mcp]==2.2.1" && exit 0; \
+        echo "wheel not installable yet (attempt ${attempt}); retrying in 30s"; \
+        sleep 30; \
+    done; \
+    exit 1
 
 FROM python:3.14-slim@sha256:cea0e6040540fb2b965b6e7fb5ffa00871e632eef63719f0ea54bca189ce14a6 AS runtime-base
 ARG HOST=0.0.0.0
@@ -29,26 +39,19 @@ ENV HOST=${HOST} \
     AUTH_TYPE=${AUTH_TYPE} \
     PYTHONUNBUFFERED=1 \
     PATH="/usr/local/bin:${PATH}" \
-    UV_HTTP_TIMEOUT=3600 \
-    UV_SYSTEM_PYTHON=1 \
-    UV_COMPILE_BYTECODE=1 \
-    UV_LINK_MODE=copy \
     HOME=/home/audiobookshelf \
     XDG_CONFIG_HOME=/home/audiobookshelf/.config \
     XDG_CACHE_HOME=/home/audiobookshelf/.cache \
-    XDG_STATE_HOME=/home/audiobookshelf/.local/state \
-    XDG_RUNTIME_DIR=/tmp/audiobookshelf-runtime
-RUN groupadd --system --gid 10001 audiobookshelf \
-    && useradd --system --uid 10001 --gid audiobookshelf \
-        --home-dir /home/audiobookshelf audiobookshelf \
-    && install -d -o audiobookshelf -g audiobookshelf -m 0700 \
-        /home/audiobookshelf/.config \
-        /home/audiobookshelf/.cache \
-        /home/audiobookshelf/.local/state \
-        /tmp/audiobookshelf-runtime
-USER audiobookshelf
+    XDG_STATE_HOME=/home/audiobookshelf/.local/state
+# Fixed non-root identity for least-privilege runtime and stable volume ownership.
+RUN groupadd --system --gid 10001 app \
+    && useradd --system --uid 10001 --gid 10001 --no-create-home \
+        --home-dir /home/audiobookshelf --shell /usr/sbin/nologin app \
+    && install -d -o 10001 -g 10001 -m 0700 \
+        /home/audiobookshelf/.config /home/audiobookshelf/.cache /home/audiobookshelf/.local/state
 
-# Slim image: MCP server only.
+# mcp: MCP server only.
 FROM runtime-base AS mcp
 COPY --from=builder-mcp /usr/local /usr/local
+USER 10001:10001
 CMD ["audiobookshelf-mcp"]
