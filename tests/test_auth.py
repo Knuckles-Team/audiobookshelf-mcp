@@ -57,8 +57,46 @@ def test_explicit_connection_inputs_are_request_scoped():
 
 
 @pytest.mark.concept("AS-OS.identity.abs")
-def test_selected_agent_config_profile_is_resolved_ephemerally():
-    """GraphOS-selected provider profiles supply endpoint, token, and TLS in memory."""
+def test_fixed_credentials_resolve_from_settings():
+    """Endpoint and token come from the shared config layer when not passed."""
+    auth_module._client = None
+    tls = MagicMock()
+    created = MagicMock()
+    values = {
+        "AUDIOBOOKSHELF_URL": "https://service.example.invalid",
+        "AUDIOBOOKSHELF_TOKEN": "runtime-token",
+    }
+
+    try:
+        with patch(
+            "agent_connector_sdk.auth.delegation.DelegationSettings.from_settings",
+            return_value=SimpleNamespace(enabled=False),
+        ):
+            with patch(
+                "audiobookshelf_mcp.auth.setting",
+                side_effect=lambda name, default="": values.get(name, default),
+            ):
+                with patch(
+                    "audiobookshelf_mcp.auth.resolve_configured_tls_profile",
+                    return_value=tls,
+                ):
+                    with patch(
+                        "audiobookshelf_mcp.auth.ApiClientSystem",
+                        return_value=created,
+                    ) as constructor:
+                        assert get_client() is created
+        constructor.assert_called_once_with(
+            base_url="https://service.example.invalid",
+            token="runtime-token",
+            tls_profile=tls,
+        )
+    finally:
+        auth_module._client = None
+
+
+@pytest.mark.concept("AS-OS.identity.abs")
+def test_selected_provider_profile_is_resolved_ephemerally():
+    """The launcher-selected SDK provider profile supplies endpoint, token and TLS in memory."""
     auth_module._client = None
     runtime = MagicMock()
     runtime.endpoint = "https://service.example.invalid"
@@ -79,15 +117,15 @@ def test_selected_agent_config_profile_is_resolved_ephemerally():
                 "audiobookshelf_mcp.auth.setting", side_effect=configured_setting
             ):
                 with patch(
-                    "agent_utilities.core.provider_runtime.resolve_selected_provider_runtime_profile",
+                    "audiobookshelf_mcp.auth.resolve_selected_provider_profile",
                     return_value=runtime,
                 ):
                     with patch(
                         "audiobookshelf_mcp.auth.ApiClientSystem",
                         return_value=created,
-                    ) as constructor:
+                    ) as client_cls:
                         assert get_client() is created
-        constructor.assert_called_once_with(
+        client_cls.assert_called_once_with(
             base_url="https://service.example.invalid",
             token="runtime-token",
             tls_profile=tls,
@@ -96,3 +134,30 @@ def test_selected_agent_config_profile_is_resolved_ephemerally():
         runtime.close.assert_not_called()
     finally:
         auth_module._client = None
+
+
+@pytest.mark.concept("AS-OS.identity.abs")
+def test_selected_provider_profile_failures_are_sanitized(monkeypatch):
+    """An unavailable or incomplete profile never leaks detail and closes the runtime."""
+    auth_module._client = None
+    monkeypatch.setenv("AGENT_PROVIDER_PROFILE", "media-service")
+    monkeypatch.delenv("PROVIDER_CONFIGS", raising=False)
+    with patch(
+        "agent_connector_sdk.auth.delegation.DelegationSettings.from_settings",
+        return_value=SimpleNamespace(enabled=False),
+    ):
+        with pytest.raises(
+            RuntimeError, match="selected runtime profile is unavailable"
+        ) as info:
+            get_client()
+        assert info.value.__cause__ is None
+
+        incomplete = MagicMock(endpoint="https://service.example.invalid", tls=None)
+        incomplete.credentials = {"TOKEN": "runtime-token"}
+        with patch(
+            "audiobookshelf_mcp.auth.resolve_selected_provider_profile",
+            return_value=incomplete,
+        ):
+            with pytest.raises(RuntimeError, match="incomplete"):
+                get_client()
+        incomplete.close.assert_called_once()

@@ -14,7 +14,6 @@ extras. Connection and secret values are configured after installation.
 uvx --from "audiobookshelf-mcp[mcp]" audiobookshelf-mcp
 ```
 
-Use `audiobookshelf-mcp[agent]` with the `audiobookshelf-agent` command when the
 Pydantic-AI server and the full epistemic-graph runtime are required.
 
 ## Install from PyPI
@@ -23,8 +22,7 @@ Pydantic-AI server and the full epistemic-graph runtime are required.
 
 | Extra | Install | Pulls in |
 |---|---|---|
-| `mcp` | `pip install "audiobookshelf-mcp[mcp]"` | FastMCP MCP-server runtime (`agent-utilities[mcp]`) |
-| `agent` | `pip install "audiobookshelf-mcp[agent]"` | Current Pydantic-AI agent runtime, full epistemic-graph engine, and Logfire tracing |
+| `mcp` | `pip install "audiobookshelf-mcp[mcp]"` | FastMCP MCP-server runtime (`agent-connector-sdk`) |
 | `all` | `pip install "audiobookshelf-mcp[all]"` | Everything above |
 
 ## From source
@@ -39,7 +37,6 @@ pip install -e ".[all]"
 
 ```bash
 docker build --target mcp -t audiobookshelf-mcp:mcp -f docker/Dockerfile .
-docker build --target agent -t audiobookshelf-mcp:agent-local -f docker/Dockerfile .
 ```
 
 The Compose files accept `AUDIOBOOKSHELF_MCP_IMAGE` and

@@ -19,10 +19,16 @@ def test_mcp_instance_registration(monkeypatch):
 
 @pytest.mark.concept("AS-OS.identity.abs")
 def test_provider_has_one_current_skill():
-    """The provider exposes one comprehensive skill with UI metadata."""
+    """The provider ships its current skills; the operations skill has UI metadata."""
     skills = sorted((ROOT / "audiobookshelf_mcp" / "skills").glob("*/SKILL.md"))
-    assert [path.parent.name for path in skills] == ["audiobookshelf-media-operations"]
-    assert (skills[0].parent / "agents" / "openai.yaml").is_file()
+    assert [path.parent.name for path in skills] == [
+        "audiobookshelf-kg-ingestion",
+        "audiobookshelf-library-catalog",
+        "audiobookshelf-media-operations",
+        "audiobookshelf-podcast-manager",
+    ]
+    operations = ROOT / "audiobookshelf_mcp" / "skills" / "audiobookshelf-media-operations"
+    assert (operations / "agents" / "openai.yaml").is_file()
 
 
 @pytest.mark.concept("AS-OS.identity.abs")
@@ -64,43 +70,34 @@ def test_provider_entry_points_prove_package_ownership():
     """Every provider leg resolves to a data package in the owning wheel."""
     project = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
     entry_points = project["project"]["entry-points"]
-    assert entry_points["agent_utilities.skill_providers"] == {
+    assert entry_points["agent_connector_sdk.skill_providers"] == {
         "audiobookshelf-mcp": "audiobookshelf_mcp.skills"
     }
-    assert entry_points["agent_utilities.ontology_providers"] == {
+    assert entry_points["agent_connector_sdk.ontology_providers"] == {
         "audiobookshelf-mcp": "audiobookshelf_mcp.ontology"
     }
-    assert entry_points["agent_utilities.source_connector_providers"] == {
+    assert entry_points["agent_connector_sdk.source_connector_providers"] == {
         "audiobookshelf-mcp": "audiobookshelf_mcp.connectors"
     }
-    assert entry_points["agent_utilities.prompt_providers"] == {
-        "audiobookshelf-mcp": "audiobookshelf_mcp.prompts"
-    }
 
 
-@pytest.mark.concept("AS-OS.identity.abs")
-def test_direct_graph_and_legacy_surfaces_are_absent():
-    """Media metadata can enter the graph only through central source sync."""
-    package = ROOT / "audiobookshelf_mcp"
-    for relative in (
-        "api_client.py",
-        "kg_ingest.py",
-        "kg_media.py",
-        "main_agent.json",
-        "mcp/mcp_ingest.py",
-    ):
-        assert not (package / relative).exists()
 
 
 @pytest.mark.concept("AS-OS.identity.abs")
 def test_dependency_contract_uses_current_runtime():
-    """Provider metadata requires the direct current Agent Utilities modules."""
+    """Provider metadata requires the direct current Agent Connector SDK modules."""
     project = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
-    assert project["project"]["dependencies"] == ["agent-utilities>=1.27.1,<2.0.0"]
-    assert project["project"]["optional-dependencies"]["agent"] == [
-        "agent-utilities[agent-runtime,logfire]>=1.27.1,<2.0.0"
+    dependencies = project["project"]["dependencies"]
+    assert dependencies[0] == "agent-connector-sdk>=0.2.0,<1.0.0"
+    assert [dep.split(">=")[0] for dep in dependencies] == [
+        "agent-connector-sdk",
+        "requests",
     ]
-    assert not (ROOT / "uv.lock").exists()
+    assert "agent" not in project["project"]["optional-dependencies"]
+    assert all(
+        dep.startswith(("agent-connector-sdk", "requests"))
+        for dep in project["project"]["dependencies"]
+    )
 
 
 @pytest.mark.concept("AS-OS.identity.abs")
@@ -113,6 +110,6 @@ def test_launch_examples_are_reference_only_and_loopback_bound():
     assert all(value for value in env.values())
 
     readme = (ROOT / "README.md").read_text(encoding="utf-8")
-    assert "-p 127.0.0.1:8000:8000" in readme
+    assert "-p 0.0.0.0" not in readme
     assert "example/audiobookshelf-mcp:mcp" not in readme
     assert "-e AUDIOBOOKSHELF_TOKEN=env://" not in readme

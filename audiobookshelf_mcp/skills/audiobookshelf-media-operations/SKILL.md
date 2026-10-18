@@ -1,7 +1,7 @@
 ---
 name: audiobookshelf-media-operations
 skill_type: skill
-description: Browse and administer an authorized Audiobookshelf service through audiobookshelf-mcp, including audiobook and podcast libraries, items, authors, series, feeds, episodes, download queues, email delivery, and notifications. Use for catalog research, metadata curation, podcast maintenance, carefully approved mutations, or requesting centrally governed GraphOS synchronization of media metadata.
+description: Browse and administer an authorized Audiobookshelf service through audiobookshelf-mcp, including audiobook and podcast libraries, items, authors, series, feeds, episodes, download queues, email delivery, and notifications. Use for catalog research, metadata curation, podcast maintenance, carefully approved mutations, or requesting centrally governed Arbora synchronization of media metadata.
 ---
 
 # Audiobookshelf Media Operations
@@ -63,7 +63,7 @@ podcast, episode, notification, or device from a display name alone.
 ## Use governed graph synchronization
 
 This provider exposes no direct graph-write or raw-media-ingestion tool. When catalog
-metadata must enter epistemic-graph, request GraphOS source synchronization through a
+metadata must enter epistemic-graph, request Arbora source synchronization through a
 centrally compiled and operator-approved signed capability bundle. Require exact live
 tool-schema pins plus tenant, ACL, classification, retention, provenance, redaction,
 and deletion policy. A missing or stale certification must fail closed.

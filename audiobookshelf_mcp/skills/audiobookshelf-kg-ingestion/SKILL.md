@@ -86,7 +86,7 @@ Nodes-only, skip authors (fast path):
 
 ## Related
 - **Ontology:** `audiobookshelf_mcp/ontology/audiobookshelf.ttl` (federated via the
-  `agent_utilities.ontology_providers` entry-point).
+  `agent_connector_sdk.ontology_providers` entry-point).
 - **Connector preset:** `audiobookshelf_mcp/connectors/mcp_source_presets.json` wires the
   declarative Tier-1 `source_sync` path for the same libraries.
 - Browsing the ingested catalog: `audiobookshelf-library-catalog`.

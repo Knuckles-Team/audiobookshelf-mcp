@@ -33,6 +33,6 @@ The condensed surface exposes `library_operations`, `author_operations`,
 `notification_operations`. Each call takes an `action` and a JSON-encoded
 `params_json` string. Enable only the domains authorized for the connector identity.
 
-When catalog metadata must enter epistemic-graph, request centrally governed GraphOS
+When catalog metadata must enter epistemic-graph, request centrally governed Arbora
 source synchronization. The provider exposes no direct graph-write or raw-cover
 ingestion action. See [Configuration, trust, and privacy](configuration.md).

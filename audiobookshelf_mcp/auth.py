@@ -5,13 +5,15 @@
 Priority:
 1. **OIDC Delegation** (RFC 8693 Token Exchange) — when ``ENABLE_DELEGATION`` is
    active, exchanges the IdP-issued user token for a downstream access token via the
-   shared ``agent_utilities.mcp.delegated_auth`` helper.
-2. **Fixed credentials** — resolves a GraphOS-selected AgentConfig provider profile or
-   falls back to the process-injected ``AUDIOBOOKSHELF_TOKEN`` value.
+   shared ``agent_connector_sdk.mcp.delegated_auth`` helper.
+2. **Fixed credentials** — resolves the launcher-selected provider profile
+   (``AGENT_PROVIDER_PROFILE`` over ``PROVIDER_CONFIGS``) through
+   ``agent_connector_sdk.credentials.provider_profile``, or falls back to the
+   process-injected ``AUDIOBOOKSHELF_TOKEN`` value.
 
 Endpoint and credential values are resolved at runtime through the shared
 AgentConfig projection. TLS trust is a mandatory-verification profile resolved by
-``agent_utilities.core.transport_security``; this package never stores certificate
+``agent_connector_sdk.tls``; this package never stores certificate
 material or a machine-specific trust path.
 """
 
@@ -19,9 +21,15 @@ import logging
 from typing import Any
 
 from agent_connector_sdk.config import setting
+from agent_connector_sdk.credentials.provider_profile import (
+    ResolvedProviderProfile,
+    resolve_selected_provider_profile,
+)
 from agent_connector_sdk.exceptions import AuthError, UnauthorizedError
 from agent_connector_sdk.tls.profile import ResolvedTLSProfile
-from agent_connector_sdk.tls.resolve import resolve_tls_profile as resolve_configured_tls_profile
+from agent_connector_sdk.tls.resolve import (
+    resolve_tls_profile as resolve_configured_tls_profile,
+)
 
 from .api import ApiClientSystem
 
@@ -29,14 +37,10 @@ logger = logging.getLogger(__name__)
 _client: ApiClientSystem | None = None
 
 
-def _resolve_provider_runtime_profile() -> Any:
-    """Resolve the GraphOS-selected provider runtime profile, or raise."""
-    from agent_utilities.core.provider_runtime import (
-        resolve_selected_provider_runtime_profile,
-    )
-
+def _resolve_provider_runtime_profile() -> ResolvedProviderProfile:
+    """Resolve the launcher-selected provider profile, or raise."""
     try:
-        return resolve_selected_provider_runtime_profile()
+        return resolve_selected_provider_profile()
     except Exception:
         raise RuntimeError(
             "PROVIDER CONFIGURATION ERROR: selected runtime profile is unavailable"
@@ -48,11 +52,11 @@ def _resolve_runtime_and_endpoint(
     url: str | None,
     token: str | None,
     tls_profile: ResolvedTLSProfile | None,
-) -> tuple[Any, str, str, ResolvedTLSProfile | None]:
+) -> tuple[ResolvedProviderProfile | None, str, str, ResolvedTLSProfile | None]:
     """Resolve ``(runtime, base_url, fixed_token, profile)``.
 
-    From the selected GraphOS provider profile when one applies, otherwise
-    from the explicit call args / fixed-credential settings.
+    From the selected provider profile when one applies, otherwise from the
+    explicit call args / fixed-credential settings.
     """
     selected_profile = (
         "" if explicit else str(setting("AGENT_PROVIDER_PROFILE", "") or "").strip()
@@ -75,17 +79,30 @@ def _resolve_runtime_and_endpoint(
 
 
 def _validate_credentials(
-    base_url: str, delegated: bool, fixed_token: str, runtime: Any | None
+    base_url: str,
+    delegated: bool,
+    fixed_token: str,
+    runtime: ResolvedProviderProfile | None,
 ) -> None:
     """Raise a RuntimeError (closing ``runtime`` first) for missing credentials."""
-    if not base_url:
-        raise RuntimeError("AUDIOBOOKSHELF_URL is required")
-    if not delegated and not fixed_token:
+    if not base_url or (not delegated and not fixed_token):
         if runtime is not None:
             runtime.close()
+        if not base_url:
+            raise RuntimeError("AUDIOBOOKSHELF_URL is required")
         raise RuntimeError(
             "AUDIOBOOKSHELF_TOKEN is required when delegation is disabled"
         )
+
+
+def _release(
+    profile: ResolvedTLSProfile, runtime: ResolvedProviderProfile | None
+) -> None:
+    """Release the TLS profile on failure through whichever object owns it."""
+    if runtime is not None:
+        runtime.close()
+    else:
+        profile.cleanup()
 
 
 def _exchange_delegated_token() -> str:
@@ -113,7 +130,7 @@ def _build_delegated_client(
     config: dict[str, Any] | None,
     base_url: str,
     profile: ResolvedTLSProfile,
-    runtime: Any | None,
+    runtime: ResolvedProviderProfile | None,
 ) -> ApiClientSystem:
     """Path 1: OIDC Delegation (RFC 8693 Token Exchange)."""
     try:
@@ -129,10 +146,7 @@ def _build_delegated_client(
             runtime.tls = None
         return client
     except Exception as exc:
-        if runtime is not None:
-            runtime.close()
-        else:
-            profile.cleanup()
+        _release(profile, runtime)
         logger.error(
             "OIDC delegation failed",
             extra={"error_type": type(exc).__name__},
@@ -144,7 +158,7 @@ def _build_fixed_client(
     base_url: str,
     fixed_token: str,
     profile: ResolvedTLSProfile,
-    runtime: Any | None,
+    runtime: ResolvedProviderProfile | None,
 ) -> ApiClientSystem:
     """Path 2: Fixed Credentials (AUDIOBOOKSHELF_TOKEN)."""
     try:
@@ -154,18 +168,12 @@ def _build_fixed_client(
             tls_profile=profile,
         )
     except (AuthError, UnauthorizedError):
-        if runtime is not None:
-            runtime.close()
-        else:
-            profile.cleanup()
+        _release(profile, runtime)
         raise RuntimeError(
             "AUTHENTICATION ERROR: Audiobookshelf rejected the configured credential"
         ) from None
     except Exception as exc:
-        if runtime is not None:
-            runtime.close()
-        else:
-            profile.cleanup()
+        _release(profile, runtime)
         raise RuntimeError(
             "AUTHENTICATION ERROR: Failed to instantiate the client "
             f"({type(exc).__name__})"

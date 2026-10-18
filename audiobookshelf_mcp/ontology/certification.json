@@ -1,5 +1,5 @@
 {
-  "api_version": "graphos.io/v1",
+  "api_version": "arbora.io/v1",
   "artifacts": {
     "audiobookshelf_mcp/connectors/mcp_source_presets.json": "b3dc21fcc68e520c2d1b88539a3654c647b74c937dc44b7ee997c8e32023dc48",
     "audiobookshelf_mcp/connectors/tool_schema_fingerprints.json": "568386b8f0f10420c0a443692325d3c5c4a69716329689eb5a1cd83e97529a09",
@@ -18,7 +18,7 @@
     "synthetic_fixture_contract": "passed"
   },
   "compatibility": {
-    "agent_utilities": ">=2.5.0,<3",
+    "agent_connector_sdk": ">=2.5.0,<3",
     "bundle_schema": "2",
     "epistemic_graph": ">=2.27.0,<3"
   },

@@ -3,7 +3,6 @@
 This page covers running `audiobookshelf-mcp` as long-lived servers.
 
 > `audiobookshelf-mcp` ships both an **MCP server** (console script `audiobookshelf-mcp`) and an
-> **A2A agent server** (console script `audiobookshelf-agent`).
 
 <!-- BEGIN GENERATED: deployment-options -->
 ## Deployment Options
@@ -71,7 +70,6 @@ Store the real remote URL, outbound identity reference, and TLS-profile referenc
 
 ```bash
 docker compose -f docker/mcp.compose.yml up -d      # MCP server only
-docker compose -f docker/agent.compose.yml up -d    # MCP + agent
 ```
 
 Compose reads endpoints, credentials, model settings, trust profiles, and optional
@@ -90,4 +88,4 @@ audiobookshelf-agent --mcp-config mcp_config.json --web
 ```
 
 Before startup, follow the [configuration contract](configuration.md) and run the
-Agent Utilities doctor checks listed there.
+Agent Connector SDK doctor checks listed there.

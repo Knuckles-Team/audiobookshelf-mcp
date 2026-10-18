@@ -8,7 +8,6 @@
         "audiobookshelf-mcp"
       ],
       "env": {
-        "MCP_TOOL_MODE": "intent",
         "AUDIOBOOKSHELF_TOKEN": "env://AUDIOBOOKSHELF_TOKEN",
         "AUDIOBOOKSHELF_URL": "env://AUDIOBOOKSHELF_URL",
         "AUTHORSTOOL": "True",
