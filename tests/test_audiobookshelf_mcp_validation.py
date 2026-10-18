@@ -88,9 +88,9 @@ def test_dependency_contract_uses_current_runtime():
     """Provider metadata requires the direct current Agent Connector SDK modules."""
     project = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
     dependencies = project["project"]["dependencies"]
-    assert dependencies[0] == "agent-connector-sdk>=0.2.0,<1.0.0"
+    assert dependencies[0] == "agent-connector-sdk[mcp]>=0.2.1,<1.0.0"
     assert [dep.split(">=")[0] for dep in dependencies] == [
-        "agent-connector-sdk",
+        "agent-connector-sdk[mcp]",
         "requests",
     ]
     assert "agent" not in project["project"]["optional-dependencies"]
