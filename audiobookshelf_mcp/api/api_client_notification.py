@@ -14,12 +14,16 @@ class ApiClientNotification(ApiClientBase):
         """Get the configured notification settings and notifications."""
         return self.request("GET", "/api/notifications")
 
-    def configure_notification_settings(self, **body: Any) -> dict[str, Any]:
+    def configure_notification_settings(
+        self, body: dict[str, Any] | None = None
+    ) -> dict[str, Any]:
         """Update the global notification settings."""
+        body = body or {}
         return self.request("PATCH", "/api/notifications", json=body)
 
-    def create_notification(self, **body: Any) -> dict[str, Any]:
+    def create_notification(self, body: dict[str, Any] | None = None) -> dict[str, Any]:
         """Create a new notification."""
+        body = body or {}
         return self.request("POST", "/api/notifications", json=body)
 
     def send_default_test_notification(self) -> dict[str, Any]:

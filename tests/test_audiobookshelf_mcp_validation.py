@@ -44,7 +44,7 @@ def test_provider_owns_complete_neutral_source_bundle():
     fingerprints = json.loads(
         (connectors / "tool_schema_fingerprints.json").read_text(encoding="utf-8")
     )
-    assert set(fingerprints["tools"]) == {"library_operations"}
+    assert set(fingerprints["tools"]) == {"audiobookshelf_get_libraries"}
 
     ontology = ROOT / "audiobookshelf_mcp" / "ontology"
     certification = json.loads(
@@ -88,7 +88,7 @@ def test_dependency_contract_uses_current_runtime():
     """Provider metadata requires the direct current Agent Connector SDK modules."""
     project = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
     dependencies = project["project"]["dependencies"]
-    assert dependencies[0] == "agent-connector-sdk[mcp]>=0.2.1,<1.0.0"
+    assert dependencies[0] == "agent-connector-sdk[mcp]>=0.3.0,<1.0.0"
     assert [dep.split(">=")[0] for dep in dependencies] == [
         "agent-connector-sdk[mcp]",
         "requests",

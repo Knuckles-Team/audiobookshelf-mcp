@@ -6,20 +6,28 @@ from .api_client_base import ApiClientBase
 class ApiClientPodcasts(ApiClientBase):
     """Podcast operations (Audiobookshelf ``Podcasts`` tag)."""
 
-    def create_podcast(self, **body: Any) -> dict[str, Any]:
+    def create_podcast(self, body: dict[str, Any] | None = None) -> dict[str, Any]:
         """Create a new podcast library item."""
+        body = body or {}
         return self.request("POST", "/api/podcasts", json=body)
 
-    def get_podcast_feed(self, **body: Any) -> dict[str, Any]:
+    def get_podcast_feed(self, body: dict[str, Any] | None = None) -> dict[str, Any]:
         """Fetch a podcast RSS feed by URL."""
+        body = body or {}
         return self.request("POST", "/api/podcasts/feed", json=body)
 
-    def bulk_create_podcasts_from_opml_feed(self, **body: Any) -> dict[str, Any]:
+    def bulk_create_podcasts_from_opml_feed(
+        self, body: dict[str, Any] | None = None
+    ) -> dict[str, Any]:
         """Bulk create podcasts from an OPML feed."""
+        body = body or {}
         return self.request("POST", "/api/podcasts/opml/create", json=body)
 
-    def get_feeds_from_opml_text(self, **body: Any) -> dict[str, Any]:
+    def get_feeds_from_opml_text(
+        self, body: dict[str, Any] | None = None
+    ) -> dict[str, Any]:
         """Parse feeds from raw OPML text."""
+        body = body or {}
         return self.request("POST", "/api/podcasts/opml/parse", json=body)
 
     def check_new_episodes(self, id: str) -> dict[str, Any]:

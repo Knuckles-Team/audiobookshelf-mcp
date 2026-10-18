@@ -2,10 +2,8 @@
   "_comment": "Human-authored, instance-neutral source input owned by audiobookshelf-mcp. It remains inactive until the central capability compiler produces and an operator approves a signed schema-v2 manifest pinned to the live tool schema and media-data policy.",
   "audiobookshelf-libraries": {
     "server": "audiobookshelf-mcp",
-    "tool": "library_operations",
-    "action": "list",
-    "params_style": "json",
-    "params": {},
+    "tool": "audiobookshelf_get_libraries",
+    "params_style": "args",
     "records_path": "libraries",
     "id_field": "id",
     "title_field": "name",

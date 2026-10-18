@@ -162,8 +162,8 @@ schema_mappings:
 sync:
 - preset: audiobookshelf-libraries
   server: audiobookshelf-mcp
-  tool: library_operations
-  action: list
+  tool: audiobookshelf_get_libraries
+  action: null
   records_path: libraries
   id_field: id
   title_field: name
@@ -171,13 +171,11 @@ sync:
   updated_field: lastUpdate
   pagination: none
   doc_type: library
-  tool_schema_sha256: 351ec944b00232d4c166e5cde9dd5a0a3d35a99bf855c40a7540eca583132a5c
+  tool_schema_sha256: 12c7adf0d28eb7c7baf6e0944de32bb74d3e16bee0e17d968674ddfe540c99a7
   raw:
     server: audiobookshelf-mcp
-    tool: library_operations
-    action: list
-    params_style: json
-    params: {}
+    tool: audiobookshelf_get_libraries
+    params_style: args
     records_path: libraries
     id_field: id
     title_field: name
