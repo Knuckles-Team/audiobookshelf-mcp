@@ -192,7 +192,9 @@ def store_media(
     """
     if not data:
         return None
-    asset = MediaAsset(data=data, mime_type=mime_type, name=name or "", properties=extra or {})
+    asset = MediaAsset(
+        data=data, mime_type=mime_type, name=name or "", properties=extra or {}
+    )
     change_set = ChangeSet(media=(asset,))
     binding = IngestBinding(connector=_SOURCE, stream=_DOMAIN, media_type=media_type)
     try:
@@ -206,7 +208,7 @@ def store_media(
         asset_id = asset.id or f"blob:{digest}"
 
     stored = _StoredAsset()
-    stored.digest = digest
+    stored.digest = digest  # type: ignore[attr-defined]
     return stored
 
 

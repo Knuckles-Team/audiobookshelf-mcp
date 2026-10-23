@@ -66,7 +66,7 @@ def _edges(transport: _FakeTransport) -> set[tuple[str, str, str]]:
     edges: set[tuple[str, str, str]] = set()
     for request in transport.requests:
         for rel in request.relationships:
-            relationship_name = rel.relation_reference.rsplit("/relations/", 1)[-1]
+            relationship_name = rel.relation_reference.rsplit("/", 1)[-1]
             edges.add((rel.source.record_id, rel.target.record_id, relationship_name))
     return edges
 
