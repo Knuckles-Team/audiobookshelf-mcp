@@ -152,6 +152,15 @@ def parse_mcp_server(filepath, api_methods):
             }
             all_mapped_methods.update(mapped)
 
+    # Action-routed tools delegate to module-level handlers (``_authors_get`` and
+    # friends) that hold the client call; those are not decorated, so count the
+    # client methods any function in the server module calls.
+    for node in ast.walk(tree):
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            visitor = MethodCallVisitor()
+            visitor.visit(node)
+            all_mapped_methods.update(visitor.called_methods.intersection(api_methods))
+
     return tool_mappings, all_mapped_methods
 
 
