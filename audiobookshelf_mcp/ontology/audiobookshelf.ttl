@@ -34,10 +34,8 @@
     rdfs:label "Podcast Episode" ;
     rdfs:comment "A single episode of a Podcast, with its own audio track (podcast_operations get_episode)." .
 
-:Author a owl:Class ;
-    rdfs:subClassOf :Person ;
-    rdfs:label "Author" ;
-    rdfs:comment "A book author within a library, a Person specialization carrying a book count and portrait image (author_operations get, library_operations authors)." .
+:Author a owl:Class .
+
 
 :Series a owl:Class ;
     rdfs:label "Series" ;
@@ -146,5 +144,4 @@
     rdfs:comment """Audiobookshelf self-hosted audiobook and podcast server model — libraries,
     audiobooks and ebooks, podcasts and their episodes, authors and series — with the
     authorship, narration, series and containment relationships, plus cover/audio blobs
-    riding the shared :MediaAsset store, federated into the agent-connector-sdk knowledge-graph hub.""" ;
-    owl:imports <http://knuckles.team/kg> .
+    riding the shared :MediaAsset store, federated into the agent-connector-sdk knowledge-graph hub.""" .

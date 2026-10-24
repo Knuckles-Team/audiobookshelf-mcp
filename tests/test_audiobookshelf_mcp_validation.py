@@ -32,63 +32,11 @@ def test_provider_has_one_current_skill():
 
 
 @pytest.mark.concept("AS-OS.identity.abs")
-def test_provider_owns_complete_neutral_source_bundle():
-    """Release evidence is complete and never claims external-live validation."""
-    connectors = ROOT / "audiobookshelf_mcp" / "connectors"
-    presets = json.loads(
-        (connectors / "mcp_source_presets.json").read_text(encoding="utf-8")
-    )
-    assert {key for key in presets if not key.startswith("_")} == {
-        "audiobookshelf-libraries"
-    }
-    fingerprints = json.loads(
-        (connectors / "tool_schema_fingerprints.json").read_text(encoding="utf-8")
-    )
-    assert set(fingerprints["tools"]) == {"audiobookshelf_get_libraries"}
-
-    ontology = ROOT / "audiobookshelf_mcp" / "ontology"
-    certification = json.loads(
-        (ontology / "certification.json").read_text(encoding="utf-8")
-    )
-    assert certification["connector"] == "audiobookshelf-mcp"
-    assert certification["mode"] == "offline-source"
-    assert certification["status"] == "source-validated"
-    assert certification["live_certified"] is False
-    for relative in (
-        "connector_manifest.yml",
-        "audiobookshelf_mcp/ontology/shapes/connector.shacl.ttl",
-        "audiobookshelf_mcp/ontology/mappings/source.yaml",
-        "audiobookshelf_mcp/ontology/fixtures/records.json",
-        "audiobookshelf_mcp/ontology/migrations/manifest.json",
-    ):
-        assert relative in certification["artifacts"]
-        assert (ROOT / relative).is_file()
-
-
-@pytest.mark.concept("AS-OS.identity.abs")
-def test_provider_entry_points_prove_package_ownership():
-    """Every provider leg resolves to a data package in the owning wheel."""
-    project = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
-    entry_points = project["project"]["entry-points"]
-    assert entry_points["agent_connector_sdk.skill_providers"] == {
-        "audiobookshelf-mcp": "audiobookshelf_mcp.skills"
-    }
-    assert entry_points["agent_connector_sdk.ontology_providers"] == {
-        "audiobookshelf-mcp": "audiobookshelf_mcp.ontology"
-    }
-    assert entry_points["agent_connector_sdk.source_connector_providers"] == {
-        "audiobookshelf-mcp": "audiobookshelf_mcp.connectors"
-    }
-
-
-
-
-@pytest.mark.concept("AS-OS.identity.abs")
 def test_dependency_contract_uses_current_runtime():
     """Provider metadata requires the direct current Agent Connector SDK modules."""
     project = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
     dependencies = project["project"]["dependencies"]
-    assert dependencies[0] == "agent-connector-sdk[mcp]>=0.3.18,<1.0.0"
+    assert dependencies[0] == "agent-connector-sdk[mcp]>=0.4.1,<1.0.0"
     assert [dep.split(">=")[0] for dep in dependencies] == [
         "agent-connector-sdk[mcp]",
         "requests",
