@@ -4,40 +4,33 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "audiobookshelf-mcp"
-version = "2.3.3"
+version = "2.3.4"
 description = "Audiobookshelf API + MCP Server"
 readme = "README.md"
 classifiers = [ "Development Status :: 4 - Beta", "License :: OSI Approved :: MIT License", "Environment :: Console", "Operating System :: POSIX :: Linux", "Programming Language :: Python :: 3",]
 requires-python = ">=3.12, <3.15"
-dependencies = [ "agent-connector-sdk[mcp]>=0.4.1,<1.0.0", "requests>=2.34.2",]
+dependencies = [ "agent-connector-sdk[mcp]>=0.5.4,<0.6.0", "requests>=2.34.2",]
 [[project.authors]]
-name = "Project Maintainers"
-email = "maintainers@users.noreply.github.com"
+name = "Repository Maintainers"
+email = "maintainers@knuckles.team"
 
 [project.license]
 text = "MIT"
 
 [project.optional-dependencies]
-mcp = [ "agent-connector-sdk[mcp]>=0.4.1,<1.0.0",]
-all = [ "agent-connector-sdk[mcp]>=0.4.1,<1.0.0",]
 test = [
     "pytest-xdist>=3.8.0", "pytest>=9.1.1", "pytest-asyncio>=1.4.0", "pytest-cov>=7.1.0",]
 
 [project.scripts]
-audiobookshelf-mcp = "audiobookshelf_mcp.mcp_server:mcp_server"
+audiobookshelf-mcp = "agent_connector_sdk.cli:serve"
 
 # Fleet contribution (CONCEPT:OS-5.52): advertise this package's skills and
 # system-prompt blueprints so agent-connector-sdk' skill-installer and KG prompt
 # library discover them without importing this package's agent code.
-[project.entry-points."agent_connector_sdk.skill_providers"]
-audiobookshelf-mcp = "audiobookshelf_mcp.skills"
-
-[project.entry-points."agent_connector_sdk.ontology_providers"]
-audiobookshelf-mcp = "audiobookshelf_mcp.ontology"
 
 # The one declared connector identity: the fleet name (SDK-CONNECTOR-CONTROL-R071).
 [project.entry-points."agent_connector_sdk.connector"]
-audiobookshelf-mcp = "audiobookshelf_mcp"
+audiobookshelf-mcp = "audiobookshelf_mcp:connector"
 
 [tool.uv.workspace]
 members = ["."]
@@ -51,6 +44,7 @@ override-dependencies = [
 ]
 
 [tool.ruff]
+extend-exclude = ["tests", "scripts"]
 line-length = 88
 target-version = "py312"
 
@@ -79,3 +73,14 @@ ignore_names = ["request", "config", "connector", "stream"]
 
 [tool.pipelines_hooks.ste]
 exempt = ["specs/*", "specs/**/*"]
+
+[tool.pipelines.container]
+host = "0.0.0.0"
+home = "/home/audiobookshelf"
+compose_env = ["AUDIOBOOKSHELF_URL=${AUDIOBOOKSHELF_URL:?supply AUDIOBOOKSHELF_URL at runtime}", "AUDIOBOOKSHELF_TOKEN=${AUDIOBOOKSHELF_TOKEN:-}"]
+
+[tool.pipelines.codespell]
+exclude = ["audiobookshelf_mcp/specs"]
+
+[tool.pipelines.api_integration]
+baseline = 14.5

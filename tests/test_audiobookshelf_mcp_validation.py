@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from audiobookshelf_mcp.mcp_server import get_mcp_instance
+from agent_connector_sdk.connector import build_server
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -13,7 +13,7 @@ ROOT = Path(__file__).resolve().parents[1]
 def test_mcp_instance_registration(monkeypatch):
     """MCP server instantiates with its six typed tool domains."""
     monkeypatch.setattr("sys.argv", ["audiobookshelf-mcp"])
-    mcp, args, middlewares = get_mcp_instance()
+    _, mcp = build_server("audiobookshelf_mcp", command_args=[])
     assert mcp is not None
 
 
@@ -36,7 +36,7 @@ def test_dependency_contract_uses_current_runtime():
     """Provider metadata requires the direct current Agent Connector SDK modules."""
     project = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
     dependencies = project["project"]["dependencies"]
-    assert dependencies[0] == "agent-connector-sdk[mcp]>=0.4.1,<1.0.0"
+    assert dependencies[0] == "agent-connector-sdk[mcp]>=0.5.4,<0.6.0"
     assert [dep.split(">=")[0] for dep in dependencies] == [
         "agent-connector-sdk[mcp]",
         "requests",
