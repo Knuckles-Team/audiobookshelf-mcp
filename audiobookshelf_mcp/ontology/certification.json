@@ -1,14 +1,11 @@
 {
   "api_version": "arbora.io/v1",
   "artifacts": {
-    "audiobookshelf_mcp/connectors/mcp_source_presets.json": "7826bd3adea835cf4ca1253b721b3de42aaa2cb7d6097a86fe50c9ca158f843f",
-    "audiobookshelf_mcp/connectors/tool_schema_fingerprints.json": "1090e8a7bd26ecd31c285b49299d06f08d600f25e21271c81c80fa6da88eae0e",
     "audiobookshelf_mcp/ontology/audiobookshelf.ttl": "30ad1a62e62f2c25c6c41cddea8e36a6f2befef9d7721ce9b9fa084a14ab6e0d",
     "audiobookshelf_mcp/ontology/fixtures/records.json": "21ea3dbf897e425e416f0089bd346816c9ef3c7072a912a89e548a34f8a9de1d",
     "audiobookshelf_mcp/ontology/mappings/source.yaml": "82eb0daa8fe1616e2b1ff53b47e70a98f7405b08193c1b0f8a6b65d0e1bd0671",
     "audiobookshelf_mcp/ontology/migrations/manifest.json": "1c9c1a9ba7d59335c6cee52a52eab6cebec6db475364c915a2088af7d2dd658f",
-    "audiobookshelf_mcp/ontology/shapes/connector.shacl.ttl": "14488af04aacdcedf7c0e1947fd94b662e1795f1cd46c1164e91e8a8b78dacf7",
-    "connector_manifest.yml": "28867b58f6613229b0f0dabaa0b532f4c1cae6b3ef94f8da0612aefa0f870554"
+    "audiobookshelf_mcp/ontology/shapes/connector.shacl.ttl": "14488af04aacdcedf7c0e1947fd94b662e1795f1cd46c1164e91e8a8b78dacf7"
   },
   "checks": {
     "declared_tool_schema": "passed",
