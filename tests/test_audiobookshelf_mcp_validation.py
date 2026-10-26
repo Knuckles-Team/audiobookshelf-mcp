@@ -18,12 +18,13 @@ def test_mcp_instance_registration(monkeypatch):
 
 
 @pytest.mark.concept("AS-OS.identity.abs")
-def test_provider_has_one_current_skill():
+def test_provider_has_current_skills():
     """The provider ships its current skills; the operations skill has UI metadata."""
     skills = sorted((ROOT / "audiobookshelf_mcp" / "skills").glob("*/SKILL.md"))
     assert [path.parent.name for path in skills] == [
         "audiobookshelf-kg-ingestion",
         "audiobookshelf-library-catalog",
+        "audiobookshelf-mcp-development",
         "audiobookshelf-media-operations",
         "audiobookshelf-podcast-manager",
     ]
