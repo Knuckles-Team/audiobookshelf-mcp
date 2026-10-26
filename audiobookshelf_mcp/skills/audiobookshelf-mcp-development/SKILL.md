@@ -51,8 +51,8 @@ For focused feedback, run the relevant tests with the repository's pinned
 environment, for example:
 
 ```bash
-uv run --all-extras pytest tests/test_basic.py -q
-uv run --all-extras pytest tests/test_connector_tool_parity.py -q
+uv run --all-extras pytest tests/test_publication_workflow.py -q
+uv run --all-extras pytest tests/test_audiobookshelf_mcp_validation.py -q
 ```
 
 The canonical `.pre-commit-config.yaml` delegates connector-standard, secrets,
