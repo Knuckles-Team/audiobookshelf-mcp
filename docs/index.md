@@ -33,3 +33,8 @@ or delegated identity are available.
 - :material-graph: **[Concepts](concepts.md)** — the CONCEPT ID registry.
 
 </div>
+
+## Spec delivery
+
+The [spec delivery dashboard](spec-delivery/) reports generated status for this
+connector.
