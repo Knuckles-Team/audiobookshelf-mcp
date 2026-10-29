@@ -40,12 +40,12 @@ def test_dependency_contract_uses_current_runtime():
     dependencies = project["project"]["dependencies"]
     assert dependencies[0] == "scion-sdk[mcp]>=0.5.9,<0.6.0"
     assert [dep.split(">=")[0] for dep in dependencies] == [
-        "agent-connector-sdk[mcp]",
+        "scion-sdk[mcp]",
         "requests",
     ]
     assert "agent" not in project["project"]["optional-dependencies"]
     assert all(
-        dep.startswith(("agent-connector-sdk", "requests"))
+        dep.startswith(("scion-sdk", "requests"))
         for dep in project["project"]["dependencies"]
     )
 
