@@ -3,7 +3,6 @@ import tomllib
 from pathlib import Path
 
 import pytest
-
 from agent_connector_sdk.connector import build_server
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -28,7 +27,9 @@ def test_provider_has_current_skills():
         "audiobookshelf-media-operations",
         "audiobookshelf-podcast-manager",
     ]
-    operations = ROOT / "audiobookshelf_mcp" / "skills" / "audiobookshelf-media-operations"
+    operations = (
+        ROOT / "audiobookshelf_mcp" / "skills" / "audiobookshelf-media-operations"
+    )
     assert (operations / "agents" / "openai.yaml").is_file()
 
 
@@ -37,14 +38,14 @@ def test_dependency_contract_uses_current_runtime():
     """Provider metadata requires the direct current Agent Connector SDK modules."""
     project = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
     dependencies = project["project"]["dependencies"]
-    assert dependencies[0] == "agent-connector-sdk[mcp]>=0.5.4,<0.6.0"
+    assert dependencies[0] == "scion-sdk[mcp]>=0.5.9,<0.6.0"
     assert [dep.split(">=")[0] for dep in dependencies] == [
-        "agent-connector-sdk[mcp]",
+        "scion-sdk[mcp]",
         "requests",
     ]
     assert "agent" not in project["project"]["optional-dependencies"]
     assert all(
-        dep.startswith(("agent-connector-sdk", "requests"))
+        dep.startswith(("scion-sdk", "requests"))
         for dep in project["project"]["dependencies"]
     )
 
