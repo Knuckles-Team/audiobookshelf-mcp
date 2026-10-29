@@ -35,7 +35,9 @@ class _FakeTransport:
         self.requests: list[Any] = []
 
     async def source_status(self, connector: str, stream: str) -> Any:
-        return SimpleNamespace(connector=connector, stream=stream, accepted_checkpoint=None)
+        return SimpleNamespace(
+            connector=connector, stream=stream, accepted_checkpoint=None
+        )
 
     async def submit(self, request: Any) -> Any:
         self.requests.append(request)
@@ -45,7 +47,9 @@ class _FakeTransport:
         )
 
     async def store_blob(self, data: bytes) -> str:
-        raise AssertionError("this connector's node/document ingestion carries no media")
+        raise AssertionError(
+            "this connector's node/document ingestion carries no media"
+        )
 
 
 @pytest.fixture
@@ -138,7 +142,11 @@ async def test_ingest_library_items_maps_book_author_series_links(ingest):
     assert _node(transport, "audiobookshelf:author:au-1")["name"] == "Tolkien"
     assert _node(transport, "audiobookshelf:series:se-1")["name"] == "Middle-earth"
     edges = _edges(transport)
-    assert ("audiobookshelf:book:item-9", "audiobookshelf:author:au-1", "writtenBy") in edges
+    assert (
+        "audiobookshelf:book:item-9",
+        "audiobookshelf:author:au-1",
+        "writtenBy",
+    ) in edges
     assert (
         "audiobookshelf:book:item-9",
         "audiobookshelf:series:se-1",

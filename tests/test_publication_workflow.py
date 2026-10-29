@@ -19,7 +19,6 @@ def _actions_on(workflow):
 
 def test_pages_publishes_spec_dashboard_from_generated_status():
 
-
     config = json.loads((ROOT / ".github/spec-dashboard.json").read_text())
     assert config == {
         "version": 1,
@@ -27,13 +26,8 @@ def test_pages_publishes_spec_dashboard_from_generated_status():
     }
 
 
-
-
 def test_development_skill_has_rapid_delivery_contract():
-    skill = (
-        ROOT
-        / "audiobookshelf_mcp/skills/audiobookshelf-mcp-development/SKILL.md"
-    )
+    skill = ROOT / "audiobookshelf_mcp/skills/audiobookshelf-mcp-development/SKILL.md"
     content = skill.read_text()
 
     assert "name: audiobookshelf-mcp-development" in content
