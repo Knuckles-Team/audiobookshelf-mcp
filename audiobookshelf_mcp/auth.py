@@ -5,29 +5,29 @@
 Priority:
 1. **OIDC Delegation** (RFC 8693 Token Exchange) — when ``ENABLE_DELEGATION`` is
    active, exchanges the IdP-issued user token for a downstream access token via the
-   shared ``agent_connector_sdk.mcp.delegated_auth`` helper.
+   shared ``scion_sdk.mcp.delegated_auth`` helper.
 2. **Fixed credentials** — resolves the launcher-selected provider profile
    (``AGENT_PROVIDER_PROFILE`` over ``PROVIDER_CONFIGS``) through
-   ``agent_connector_sdk.credentials.provider_profile``, or falls back to the
+   ``scion_sdk.credentials.provider_profile``, or falls back to the
    process-injected ``AUDIOBOOKSHELF_TOKEN`` value.
 
 Endpoint and credential values are resolved at runtime through the shared
 AgentConfig projection. TLS trust is a mandatory-verification profile resolved by
-``agent_connector_sdk.tls``; this package never stores certificate
+``scion_sdk.tls``; this package never stores certificate
 material or a machine-specific trust path.
 """
 
 import logging
 from typing import Any
 
-from agent_connector_sdk.config import setting
-from agent_connector_sdk.credentials.provider_profile import (
+from scion_sdk.config import setting
+from scion_sdk.credentials.provider_profile import (
     ResolvedProviderProfile,
     resolve_selected_provider_profile,
 )
-from agent_connector_sdk.exceptions import AuthError, UnauthorizedError
-from agent_connector_sdk.tls.profile import ResolvedTLSProfile
-from agent_connector_sdk.tls.resolve import (
+from scion_sdk.exceptions import AuthError, UnauthorizedError
+from scion_sdk.tls.profile import ResolvedTLSProfile
+from scion_sdk.tls.resolve import (
     resolve_tls_profile as resolve_configured_tls_profile,
 )
 
@@ -106,14 +106,14 @@ def _release(
 
 
 def _exchange_delegated_token() -> str:
-    """RFC 8693 Token Exchange via ``agent_connector_sdk.auth.delegation``."""
+    """RFC 8693 Token Exchange via ``scion_sdk.auth.delegation``."""
     import httpx
-    from agent_connector_sdk.auth.delegation import (
+    from scion_sdk.auth.delegation import (
         DelegationSettings,
         current_user_token,
         exchange_token,
     )
-    from agent_connector_sdk.exceptions import LoginRequiredError
+    from scion_sdk.exceptions import LoginRequiredError
 
     settings = DelegationSettings.from_settings()
     subject_token = current_user_token()
@@ -193,7 +193,7 @@ def get_client(
     """
     global _client
 
-    from agent_connector_sdk.auth.delegation import DelegationSettings
+    from scion_sdk.auth.delegation import DelegationSettings
 
     delegated = (
         bool(config.get("enable_delegation", False))

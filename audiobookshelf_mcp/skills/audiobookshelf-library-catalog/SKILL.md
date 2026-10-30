@@ -11,7 +11,7 @@ description: >-
 license: MIT
 tags: [audiobookshelf, library, audiobook, series, mcp]
 metadata:
-  author: Genius
+  author: Knuckles-Team
   version: '0.1.0'
 ---
 # Audiobookshelf Library Catalog

@@ -13,7 +13,7 @@ def test_get_client_auth_error_is_sanitized():
     auth_module._client = None
     profile = MagicMock()
     with patch(
-        "agent_connector_sdk.auth.delegation.DelegationSettings.from_settings",
+        "scion_sdk.auth.delegation.DelegationSettings.from_settings",
         return_value=SimpleNamespace(enabled=False),
     ):
         with patch(
@@ -41,7 +41,7 @@ def test_explicit_connection_inputs_are_request_scoped():
     created = object()
     try:
         with patch(
-            "agent_connector_sdk.auth.delegation.DelegationSettings.from_settings",
+            "scion_sdk.auth.delegation.DelegationSettings.from_settings",
             return_value=SimpleNamespace(enabled=False),
         ):
             with patch("audiobookshelf_mcp.auth.ApiClientSystem", return_value=created):
@@ -69,7 +69,7 @@ def test_fixed_credentials_resolve_from_settings():
 
     try:
         with patch(
-            "agent_connector_sdk.auth.delegation.DelegationSettings.from_settings",
+            "scion_sdk.auth.delegation.DelegationSettings.from_settings",
             return_value=SimpleNamespace(enabled=False),
         ):
             with patch(
@@ -110,7 +110,7 @@ def test_selected_provider_profile_is_resolved_ephemerally():
 
     try:
         with patch(
-            "agent_connector_sdk.auth.delegation.DelegationSettings.from_settings",
+            "scion_sdk.auth.delegation.DelegationSettings.from_settings",
             return_value=SimpleNamespace(enabled=False),
         ):
             with patch(
@@ -143,7 +143,7 @@ def test_selected_provider_profile_failures_are_sanitized(monkeypatch):
     monkeypatch.setenv("AGENT_PROVIDER_PROFILE", "media-service")
     monkeypatch.delenv("PROVIDER_CONFIGS", raising=False)
     with patch(
-        "agent_connector_sdk.auth.delegation.DelegationSettings.from_settings",
+        "scion_sdk.auth.delegation.DelegationSettings.from_settings",
         return_value=SimpleNamespace(enabled=False),
     ):
         with pytest.raises(
