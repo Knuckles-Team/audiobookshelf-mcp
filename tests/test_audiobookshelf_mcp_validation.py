@@ -38,7 +38,7 @@ def test_dependency_contract_uses_current_runtime():
     """Provider metadata requires the direct current Scion SDK modules."""
     project = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
     dependencies = project["project"]["dependencies"]
-    assert dependencies[0] == "scion-sdk[mcp]>=0.6.0,<0.7.0"
+    assert dependencies[0] == "scion-sdk[mcp]>=0.6.2,<0.7.0"
     assert [dep.split(">=")[0] for dep in dependencies] == [
         "scion-sdk[mcp]",
         "requests",
