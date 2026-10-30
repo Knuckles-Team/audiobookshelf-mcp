@@ -2,9 +2,10 @@
   "schema_version": 2,
   "spec_id": "CONN-AUDIOBOOKSHELF-MCP-CONNECTOR-CONTENT",
   "owner_repo": "audiobookshelf-mcp",
-  "delivery_state": "LANDED",
+  "delivery_state": "SPECIFIED",
   "requirement_ids": [
-    "CONN-AUDIOBOOKSHELF-MCP-CONNECTOR-CONTENT-R001"
+    "CONN-AUDIOBOOKSHELF-MCP-CONNECTOR-CONTENT-R001",
+    "CONN-AUDIOBOOKSHELF-MCP-CONNECTOR-CONTENT-R002"
   ],
   "requirements": [
     {
@@ -15,6 +16,13 @@
         "0bfcccca44b8",
         "444ef757810e"
       ],
+      "verified_by": []
+    },
+    {
+      "id": "CONN-AUDIOBOOKSHELF-MCP-CONNECTOR-CONTENT-R002",
+      "title": "Stop declaring :Author in the shared namespace",
+      "delivery_state": "SPECIFIED",
+      "landed_in": [],
       "verified_by": []
     }
   ]
