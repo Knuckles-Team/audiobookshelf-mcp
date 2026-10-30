@@ -3,7 +3,7 @@
 CONCEPT:AU-KG.ingest.enterprise-source-extractor. The package pushes its data into
 the ONE epistemic-graph knowledge graph as **typed OWL nodes** (``:Library``,
 ``:Book``, ``:Podcast``, ``:Author``, ``:Series``) + links, matching the classes
-federated by ``audiobookshelf_mcp.ontology``, through ``agent_connector_sdk.ingest``
+federated by ``audiobookshelf_mcp.ontology``, through ``scion_sdk.ingest``
 -- the generated ``SourceIngest`` client, not a local ingestion helper.
 
 The MCP tool surface exposes these as best-effort tools that must never raise on an
@@ -21,7 +21,7 @@ import hashlib
 import logging
 from typing import Any
 
-from agent_connector_sdk.ingest import (
+from scion_sdk.ingest import (
     ChangeSet,
     Document,
     Entity,
@@ -49,7 +49,7 @@ _RELATIONSHIP_RESERVED_KEYS = frozenset({"source", "target", "relationship"})
 def _required_text(record: dict[str, Any], key: str) -> str:
     value = record.get(key)
     if not isinstance(value, str) or not value:
-        from agent_connector_sdk.ingest import IngestError
+        from scion_sdk.ingest import IngestError
 
         raise IngestError(
             f"every entity needs an id and a node_type, got {key}={value!r}"

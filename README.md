@@ -41,7 +41,7 @@ This repository is actively maintained - Contributions are welcome!
   to multiple underlying operations via an `action` argument, keeping the tool surface small.
 - **Two interfaces, one package** — use it as a Python **API client**, an **MCP server**
   (`stdio` / `streamable-http` / `sse`).
-- **`agent-connector-sdk` native** — built on the shared framework (auth, action router,
+- **`scion-sdk` native** — built on the shared framework (auth, action router,
   telemetry, governance) for fleet consistency.
 - **Checked transport profiles** — outbound HTTP uses AgentConfig-backed TLS trust;
   peer and hostname verification cannot be disabled by this connector.
@@ -55,7 +55,7 @@ This repository is actively maintained - Contributions are welcome!
 Each tool is **action-routed**: pass an `action` and a JSON `params_json` payload. Tool
 domains can be toggled on or off with the listed environment variable. The table below is
 **auto-generated from the live server** by the `mcp-readme-table` pre-commit hook
-(`python -m agent_connector_sdk.mcp.readme_tools`) — do not edit it by hand.
+(`python -m scion_sdk.mcp.readme_tools`) — do not edit it by hand.
 
 <!-- MCP-TOOLS-TABLE:START -->
 
@@ -143,7 +143,7 @@ Pick the extra that matches what the operator want to run:
 
 | Extra | Installs | Use when |
 |-------|----------|----------|
-| `audiobookshelf-mcp[mcp]` | MCP server (`agent-connector-sdk`) plus the mandatory full epistemic-graph base runtime | The operator run the **MCP server** |
+| `audiobookshelf-mcp[mcp]` | MCP server (`scion-sdk`) plus the mandatory full epistemic-graph base runtime | The operator run the **MCP server** |
 | `audiobookshelf-mcp[all]` | MCP + test tooling | Development |
 
 ```bash
@@ -169,7 +169,7 @@ docker build --target mcp -t audiobookshelf-mcp:mcp -f docker/Dockerfile .
 
 ### Knowledge-graph database (`epistemic-graph`)
 
-Every install receives `epistemic-graph[full]` through the current Agent Connector SDK base
+Every install receives `epistemic-graph[full]` through the current Scion SDK base
 dependency. The connector does not open an insecure engine listener or silently select a
 machine-specific engine. Deployment topology and identity are resolved by AgentConfig. For a
 shared production authority, follow the
@@ -228,7 +228,7 @@ Tools are action-routed — pass an `action` plus a JSON `params_json` string:
 <!-- MCP-CONFIG-EXAMPLES:START -->
 
 > **Install the connector-focused `[mcp]` extra.** Examples use `audiobookshelf-mcp[mcp]` to add
-> FastMCP / FastAPI through `agent-connector-sdk`; the required Agent Connector SDK core
+> FastMCP / FastAPI through `scion-sdk`; the required Scion SDK core
 > still carries `epistemic-graph[full]`. The `[agent-runtime]` extra additionally
 > enables model orchestration.
 
@@ -386,7 +386,7 @@ the detailed transport contract.
 | `EMAILTOOL` | `True` |  |
 | `NOTIFICATIONTOOL` | `True` |  |
 
-#### Inherited agent-connector-sdk variables (apply to every connector)
+#### Inherited scion-sdk variables (apply to every connector)
 
 | Variable | Example | Description |
 |----------|---------|-------------|
@@ -406,7 +406,7 @@ the detailed transport contract.
 | `MODEL_ID` | `gpt-4o` | Model id for the agent |
 | `ENABLE_WEB_UI` | `True` | Serve the AG-UI web interface |
 
-_20 package + 15 inherited variable(s). Auto-generated from `.env.example` + the shared agent-connector-sdk set — do not edit._
+_20 package + 15 inherited variable(s). Auto-generated from `.env.example` + the shared scion-sdk set — do not edit._
 <!-- ENV-VARS-TABLE:END -->
 
 The generated table is the authoritative process-variable catalog. Endpoint and
