@@ -12,7 +12,7 @@ description: >-
 license: MIT
 tags: [audiobookshelf, knowledge-graph, ingestion, ontology, mcp]
 metadata:
-  author: Genius
+  author: Knuckles-Team
   version: '0.1.0'
 ---
 # Audiobookshelf Knowledge-Graph Ingestion
@@ -86,7 +86,7 @@ Nodes-only, skip authors (fast path):
 
 ## Related
 - **Ontology:** `audiobookshelf_mcp/ontology/audiobookshelf.ttl` (federated via the
-  `agent_connector_sdk.ontology_providers` entry-point).
+  `scion_sdk.ontology_providers` entry-point).
 - **Connector preset:** `audiobookshelf_mcp/connectors/mcp_source_presets.json` wires the
   declarative Tier-1 `source_sync` path for the same libraries.
 - Browsing the ingested catalog: `audiobookshelf-library-catalog`.

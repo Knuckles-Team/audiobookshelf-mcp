@@ -1,6 +1,6 @@
 # audiobookshelf-mcp
 
-Audiobookshelf MCP **API + MCP Server + A2A Agent** for the agent-connector-sdk ecosystem — a
+Audiobookshelf MCP **API + MCP Server + A2A Agent** for the scion-sdk ecosystem — a
 typed, action-routed connector.
 
 !!! info "Official documentation"

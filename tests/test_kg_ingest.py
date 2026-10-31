@@ -7,7 +7,7 @@ Audiobookshelf record -> :Library / :Book / :Author / :Series mapping.
 CONCEPT:AU-KG.ingest.enterprise-source-extractor.
 
 The fake fakes the **transport boundary**, not the SDK's own request-building/
-validation contract (``agent_connector_sdk.ingest``), per the fleet SDK migration
+validation contract (``scion_sdk.ingest``), per the fleet SDK migration
 recipe. Like gramps-mcp, ``audiobookshelf_mcp.kg_ingest`` is a **best-effort** surface
 (its MCP tools must never raise when the KG stack is down), so it converts
 ``IngestError``/``IngestUnavailableError`` into ``None`` rather than propagating it --
@@ -20,7 +20,7 @@ from types import SimpleNamespace
 from typing import Any
 
 import pytest
-from agent_connector_sdk.ingest import KnowledgeIngest
+from scion_sdk.ingest import KnowledgeIngest
 
 from audiobookshelf_mcp.kg_ingest import (
     ingest_authors,

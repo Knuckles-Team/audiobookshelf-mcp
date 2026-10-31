@@ -8,7 +8,7 @@ from audiobookshelf_mcp.api import ApiClientBase, ApiClientSystem
 
 __all__ = ["ApiClientBase", "ApiClientSystem"]
 
-from agent_connector_sdk.connector import Connector
+from scion_sdk.connector import Connector
 
 from audiobookshelf_mcp.auth import get_client
 

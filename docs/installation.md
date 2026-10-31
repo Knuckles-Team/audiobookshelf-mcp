@@ -22,7 +22,7 @@ Pydantic-AI server and the full epistemic-graph runtime are required.
 
 | Extra | Install | Pulls in |
 |---|---|---|
-| `mcp` | `pip install "audiobookshelf-mcp[mcp]"` | FastMCP MCP-server runtime (`agent-connector-sdk`) |
+| `mcp` | `pip install "audiobookshelf-mcp[mcp]"` | FastMCP MCP-server runtime (`scion-sdk`) |
 | `all` | `pip install "audiobookshelf-mcp[all]"` | Everything above |
 
 ## From source

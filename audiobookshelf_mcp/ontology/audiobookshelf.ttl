@@ -144,4 +144,4 @@
     rdfs:comment """Audiobookshelf self-hosted audiobook and podcast server model — libraries,
     audiobooks and ebooks, podcasts and their episodes, authors and series — with the
     authorship, narration, series and containment relationships, plus cover/audio blobs
-    riding the shared :MediaAsset store, federated into the agent-connector-sdk knowledge-graph hub.""" .
+    riding the shared :MediaAsset store, federated into the scion-sdk knowledge-graph hub.""" .

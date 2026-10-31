@@ -3,7 +3,7 @@ import tomllib
 from pathlib import Path
 
 import pytest
-from agent_connector_sdk.connector import build_server
+from scion_sdk.connector import build_server
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -35,10 +35,18 @@ def test_provider_has_current_skills():
 
 @pytest.mark.concept("AS-OS.identity.abs")
 def test_dependency_contract_uses_current_runtime():
-    """Provider metadata requires the direct current Agent Connector SDK modules."""
+    """Provider metadata requires the direct current Scion SDK modules."""
     project = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
     dependencies = project["project"]["dependencies"]
-    assert dependencies[0] == "scion-sdk[mcp]>=0.5.9,<0.6.0"
+    from packaging.requirements import Requirement
+    from packaging.version import Version
+
+    requirement = Requirement(
+        next(d for d in dependencies[:1] if d.startswith("scion-sdk[mcp]"))
+    )
+    floor = max(Version(s.version) for s in requirement.specifier if s.operator == ">=")
+    assert floor >= Version("0.6.3")
+    assert not requirement.specifier.contains("0.7.0")
     assert [dep.split(">=")[0] for dep in dependencies] == [
         "scion-sdk[mcp]",
         "requests",

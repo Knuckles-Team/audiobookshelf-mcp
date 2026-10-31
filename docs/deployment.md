@@ -88,4 +88,4 @@ audiobookshelf-agent --mcp-config mcp_config.json --web
 ```
 
 Before startup, follow the [configuration contract](configuration.md) and run the
-Agent Connector SDK doctor checks listed there.
+Scion SDK doctor checks listed there.
