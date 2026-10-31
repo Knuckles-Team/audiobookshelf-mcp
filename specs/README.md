@@ -13,3 +13,4 @@ Read the existing specs first. Extend the spec that owns the behavior. Create a 
 ## Local specifications
 
 - [`CONN-AUDIOBOOKSHELF-MCP-CONNECTOR-CONTENT`](connector-content/spec.md) — The connector serves its packaged content.
+- [`CONN-AUDIOBOOKSHELF-MCP-COMPETENCY-OPERATIONS`](competency-operations/spec.md) — User listening progress.
