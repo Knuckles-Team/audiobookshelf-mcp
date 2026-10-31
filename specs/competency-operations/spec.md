@@ -1,6 +1,6 @@
 # CONN-AUDIOBOOKSHELF-MCP-COMPETENCY-OPERATIONS — User listening progress
 
-Owner: audiobookshelf-mcp. Cross-repo IDs: EG-MEDIA-VOCAB-R022.
+Owner: audiobookshelf-mcp. Cross-repo IDs: MEDULLA-MEDIA-VOCAB-R022.
 
 ## Purpose and user stories
 
@@ -12,4 +12,4 @@ See [requirements.md](requirements.md).
 
 ## Why a new spec
 
-No local spec owns connector operations that competency questions need. This spec owns them. It moved here from Medulla (EG-MEDIA-VOCAB-R022), where the rows described this connector's behaviour.
+No local spec owns connector operations that competency questions need. This spec owns them. It moved here from Medulla (MEDULLA-MEDIA-VOCAB-R022), where the rows described this connector's behaviour.
