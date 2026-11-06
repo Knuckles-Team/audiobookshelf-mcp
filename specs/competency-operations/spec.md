@@ -22,15 +22,15 @@ Medulla answers a connector competency question over this connector's virtual gr
 
 **Acceptance Scenarios**:
 
-1. **Given** the connector is configured, **When** the behaviour of row `CONN-AUDIOBOOKSHELF-MCP-COMPETENCY-OPERATIONS-R001` (the connector must serve a `library_operations` or `users` action that returns media progress per user and item) is exercised, **Then** the operation returns the documented fields.
+1. **Given** the connector is configured, **When** the behaviour of row `CONN-AUDIOBOOKSHELF-MCP-COMPETENCY-OPERATIONS-R001` (the connector must serve typed tools that return media progress per user and item) is exercised, **Then** the operation returns the documented fields.
 
 ### Edge Cases
 
-- If `CONN-AUDIOBOOKSHELF-MCP-COMPETENCY-OPERATIONS-R001` is not met, its proving test fails: the connector must serve a `library_operations` or `users` action that returns media progress per user and item.
+- If `CONN-AUDIOBOOKSHELF-MCP-COMPETENCY-OPERATIONS-R001` is not met, its proving test fails: the connector must serve typed tools that return media progress per user and item.
 
 ## Requirements
 
-- **FR-001**: The connector must serve a `library_operations` or `users` action that returns media progress per user and item. Rows: `CONN-AUDIOBOOKSHELF-MCP-COMPETENCY-OPERATIONS-R001`.
+- **FR-001**: The connector must serve typed tools that return media progress per user and item. Rows: `CONN-AUDIOBOOKSHELF-MCP-COMPETENCY-OPERATIONS-R001`.
 
 ## Success Criteria
 

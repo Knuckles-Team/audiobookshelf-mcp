@@ -52,7 +52,7 @@ The repository pre-commit hooks apply: `ruff-format`, `connector-standard`, `sec
 
 ## Production caller chain
 
-1. `CONN-AUDIOBOOKSHELF-MCP-COMPETENCY-OPERATIONS-R001`: (planned) the `library_operations` tool (`audiobookshelf_mcp/mcp/mcp_libraries.py:72`, registered by `register_libraries_tools` at line 68) -> a new action handler beside `_libraries_items` (line 43) -> a new method on the client in `audiobookshelf_mcp/api/api_client_libraries.py`.
+1. `CONN-AUDIOBOOKSHELF-MCP-COMPETENCY-OPERATIONS-R001`: the typed tools `audiobookshelf_get_users`, `audiobookshelf_get_user_listening_stats` and `audiobookshelf_get_my_items_in_progress` -> `ApiClientUsers` / `ApiClientMe` in `audiobookshelf_mcp/api/`.
 
 ## Cross-repo seams
 

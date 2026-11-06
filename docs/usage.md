@@ -28,10 +28,9 @@ finally:
 audiobookshelf-mcp --transport stdio
 ```
 
-The condensed surface exposes `library_operations`, `author_operations`,
-`series_operations`, `podcast_operations`, `email_operations`, and
-`notification_operations`. Each call takes an `action` and a JSON-encoded
-`params_json` string. Enable only the domains authorized for the connector identity.
+The server exposes one typed tool per Audiobookshelf API operation (library, item, author, series,
+podcast, user, progress, session, collection, playlist, backup, email, notification and server
+tools, each prefixed `audiobookshelf_`). Enable only the operations authorized for the connector identity.
 
 When catalog metadata must enter epistemic-graph, request centrally governed Arbora
 source synchronization. The provider exposes no direct graph-write or raw-cover

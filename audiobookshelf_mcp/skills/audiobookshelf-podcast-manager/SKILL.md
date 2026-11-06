@@ -17,7 +17,7 @@ metadata:
 # Audiobookshelf Podcast Manager
 
 Domain-typed access to Audiobookshelf **podcasts** and **episodes** through the
-`audiobookshelf-mcp` MCP server. Prefer the condensed `podcast_operations` tool over raw
+`audiobookshelf-mcp` MCP server. Prefer the typed podcast tools over raw
 HTTP — it carries the feed/episode field conventions.
 
 ## When to use
@@ -28,7 +28,7 @@ HTTP — it carries the feed/episode field conventions.
 
 ## When NOT to use
 - Audiobook / ebook libraries and series → `audiobookshelf-library-catalog`.
-- Author portrait/provider-match curation → the raw `author_operations` tool.
+- Author portrait/provider-match curation -> `audiobookshelf_match_author_by_id` and the author image tools.
 - Pushing podcasts into the epistemic-graph → `audiobookshelf-kg-ingestion`.
 
 ## Prerequisites & environment
@@ -40,42 +40,30 @@ Connect via the `mcp-client` skill against the **`audiobookshelf-mcp`** MCP serv
 | `AUDIOBOOKSHELF_TOKEN` | ✅ | Bearer API token (Config → API Keys) |
 | `AUDIOBOOKSHELF_SSL_VERIFY` | optional | TLS verification toggle |
 
-`MCP_TOOL_MODE` (`condensed`|`verbose`|`both`) selects the condensed surface vs. the
-one-to-one verbose tools.
+## Tools
+One typed tool per operation.
 
-## Tools & actions
-Prefer the **condensed** tool; it takes `action` + a `params_json` **JSON string**.
-
-| Condensed tool | Actions |
-|----------------|---------|
-| `podcast_operations` | `create`, `feed`, `opml_create`, `opml_parse`, `check_new`, `clear_queue`, `download_episodes`, `downloads`, `get_episode`, `update_episode`, `remove_episode`, `match_episodes`, `find_episode` |
+| Task | Tool |
+|------|------|
+| Create / preview | `audiobookshelf_create_podcast`, `audiobookshelf_get_podcast_feed` |
+| OPML | `audiobookshelf_bulk_create_podcasts_from_opml_feed`, `audiobookshelf_get_feeds_from_opml_text` |
+| Episodes | `audiobookshelf_check_new_episodes`, `audiobookshelf_download_episodes`, `audiobookshelf_get_episode_downloads`, `audiobookshelf_clear_episode_download_queue`, `audiobookshelf_get_episode`, `audiobookshelf_update_episode`, `audiobookshelf_remove_episode`, `audiobookshelf_quick_match_episodes`, `audiobookshelf_find_episode` |
+| Library views | `audiobookshelf_get_library_recent_episodes`, `audiobookshelf_get_library_episode_downloads` |
 
 ### Key parameters
-- `id` — the podcast library-item id (required for episode/queue actions).
-- `episode_id` — required for `get_episode` / `update_episode` / `remove_episode`.
-- `create` takes a podcast body (folder/library ids + `media.metadata.feedUrl`).
-- `feed` / `opml_parse` take the feed `rssFeed` URL or `opmlText` body.
+- `id` - the podcast library-item id (required for episode/queue tools).
+- `episode_id` - required for `audiobookshelf_get_episode`, `audiobookshelf_update_episode`, `audiobookshelf_remove_episode`.
+- `audiobookshelf_create_podcast` takes a podcast body (folder/library ids + `media.metadata.feedUrl`).
+- `audiobookshelf_get_podcast_feed` takes the `rssFeed` URL in `body`; `audiobookshelf_get_feeds_from_opml_text` takes `opmlText` in `body`.
 
-## Recipes (`params_json`)
-Preview a feed before adding:
-```json
-{"rssFeed":"https://example.com/podcast.rss"}
-```
-Check for new episodes of a podcast:
-```json
-{"id":"<podcast_item_id>"}
-```
-Queue specific new episodes for download:
-```json
-{"id":"<podcast_item_id>","episodes":[{"episodeId":"<ep_id>"}]}
-```
-Read one episode:
-```json
-{"id":"<podcast_item_id>","episode_id":"<ep_id>"}
-```
+## Recipes
+Preview a feed before adding: `audiobookshelf_get_podcast_feed` with `body={"rssFeed":"https://example.com/podcast.rss"}`.
+
+Check for new episodes: `audiobookshelf_check_new_episodes` with `id=<podcast_item_id>`.
+
+Queue specific episodes: `audiobookshelf_download_episodes` with `id=<podcast_item_id>` and the episodes list.
 
 ## Gotchas
-- `params_json` is a **string** of JSON, not an object — serialize it.
 - `check_new` / `clear_queue` / `downloads` are GET-style: they only need `id`.
 - Downloading episodes is asynchronous — poll `downloads` to watch the queue drain.
 - A podcast lives in a `mediaType: podcast` library; you cannot add one to a book library.

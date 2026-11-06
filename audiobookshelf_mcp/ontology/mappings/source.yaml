@@ -4,8 +4,7 @@ ontology_source: audiobookshelf
 sync:
 - preset: audiobookshelf-libraries
   server: audiobookshelf-mcp
-  tool: library_operations
-  action: list
+  tool: audiobookshelf_get_libraries
   records_path: libraries
   id_field: id
   title_field: name

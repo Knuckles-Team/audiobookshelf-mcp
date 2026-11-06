@@ -43,31 +43,18 @@ cleanly and returns `{"ingested": null}` (it never fails the call).
 | `AUDIOBOOKSHELF_TOKEN` | ✅ | Bearer API token (Config → API Keys) |
 | `AUDIOBOOKSHELF_SSL_VERIFY` | optional | TLS verification toggle |
 
-## Tools & actions
+## Tools
+Ingestion is driven by arbora's governed sync of the connector's declared data sources, which read
+through these typed tools:
+
 | Tool | Purpose |
 |------|---------|
-| `audiobookshelf_ingest_libraries` | List libraries (+ items/authors/covers) and ingest them as typed KG nodes. |
+| `audiobookshelf_get_libraries` | Library inventory (source `audiobookshelf-libraries`). |
+| `audiobookshelf_get_library_items` | Items of one library (`id`, `limit`, `page`, `sort`). |
+| `audiobookshelf_get_library_authors` | Authors of one library. |
+| `audiobookshelf_get_item_cover` | Cover art for `:MediaAsset` blobs. |
 
-### Key parameters (`params_json` — a JSON **string**)
-- `library_id` — scope ingestion to one library (omit for all libraries).
-- `include_items` — also ingest `:Book` / `:Podcast` items (default `true`).
-- `include_authors` — also ingest `:Author` nodes (default `true`).
-- `include_covers` — capture item cover art as `:MediaAsset` blobs (default `false`).
-- `item_params` — extra `get_library_items` filters (e.g. `{"limit":100}`).
-
-## Recipes (`params_json`)
-Ingest the entire server (nodes only):
-```json
-{}
-```
-Ingest one library including cover-art blobs:
-```json
-{"library_id":"<library_id>","include_covers":true,"item_params":{"limit":200}}
-```
-Nodes-only, skip authors (fast path):
-```json
-{"include_authors":false,"include_covers":false}
-```
+Request the sync from arbora (`source_sync`); do not push records by hand.
 
 ## What lands in the graph
 - `:Library` (name, mediaType, provider) — node id `audiobookshelf:library:<id>`.
@@ -77,9 +64,8 @@ Nodes-only, skip authors (fast path):
 - Cover art → `:MediaAsset` blobs carrying `owner_id` back to the item.
 
 ## Gotchas
-- `params_json` is a **string** of JSON, not an object — serialize it.
 - Writes are **best-effort**: no reachable engine → clean no-op, not an error.
-- `include_covers` fetches each item's `/api/items/{id}/cover` — slow on large
+- Cover capture fetches each item's `/api/items/{id}/cover`, which is slow on large
   libraries; leave it off for a quick metadata-only sync.
 - Node `type` values must match the ontology classes; re-running is idempotent (nodes
   MERGE on their stable `audiobookshelf:<class>:<id>` id).
