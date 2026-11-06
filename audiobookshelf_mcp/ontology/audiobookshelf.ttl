@@ -7,8 +7,7 @@
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
 # Audiobookshelf media ontology — libraries, audiobooks, podcasts, authors and series
-# served by the audiobookshelf-mcp MCP tool surface (library_operations / author_operations
-# / series_operations / podcast_operations). All classes and properties live in the shared
+# served by the audiobookshelf-mcp MCP tool surface (audiobookshelf_* typed tools). All classes and properties live in the shared
 # `:` (kg#) namespace; only the owl:Ontology node gets the per-package IRI. :Book / :Podcast /
 # :PodcastEpisode specialize the shared :MediaAsset (their cover art + audio ride the shared
 # :Blob / :MediaAsset store); :Author specializes the shared :Person.
@@ -17,29 +16,29 @@
 
 :Library a owl:Class ;
     rdfs:label "Library" ;
-    rdfs:comment "An Audiobookshelf library — a named collection of a single media type, book or podcast (library_operations list/get)." .
+    rdfs:comment "An Audiobookshelf library — a named collection of a single media type, book or podcast (audiobookshelf_get_libraries / audiobookshelf_get_library_by_id)." .
 
 :Book a owl:Class ;
     rdfs:subClassOf :MediaAsset ;
     rdfs:label "Book" ;
-    rdfs:comment "An audiobook / ebook library item, a book-type MediaAsset with title, author, narrator and cover (library_operations items)." .
+    rdfs:comment "An audiobook / ebook library item, a book-type MediaAsset with title, author, narrator and cover (audiobookshelf_get_library_items)." .
 
 :Podcast a owl:Class ;
     rdfs:subClassOf :MediaAsset ;
     rdfs:label "Podcast" ;
-    rdfs:comment "A podcast library item aggregating downloadable episodes (podcast_operations create/feed)." .
+    rdfs:comment "A podcast library item aggregating downloadable episodes (audiobookshelf_create_podcast / audiobookshelf_get_podcast_feed)." .
 
 :PodcastEpisode a owl:Class ;
     rdfs:subClassOf :MediaAsset ;
     rdfs:label "Podcast Episode" ;
-    rdfs:comment "A single episode of a Podcast, with its own audio track (podcast_operations get_episode)." .
+    rdfs:comment "A single episode of a Podcast, with its own audio track (audiobookshelf_get_episode)." .
 
 :Author a owl:Class .
 
 
 :Series a owl:Class ;
     rdfs:label "Series" ;
-    rdfs:comment "An ordered named grouping of books within a library (series_operations get, library_operations series)." .
+    rdfs:comment "An ordered named grouping of books within a library (audiobookshelf_get_series, audiobookshelf_get_library_series)." .
 
 # --- links (owl:ObjectProperty) ---
 

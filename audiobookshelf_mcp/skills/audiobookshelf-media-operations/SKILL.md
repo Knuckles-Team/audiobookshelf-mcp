@@ -13,21 +13,25 @@ sensitive.
 
 ## Select the typed domain
 
-Call a condensed tool with its documented `action` and a JSON object serialized into
-`params_json`:
+Call the typed tool for the operation (one tool per API operation, prefix
+`audiobookshelf_`); arguments are real parameters, never a JSON string.
 
-- `library_operations`: `list`, `create`, `get`, `update`, `delete`, `authors`,
-  `delete_issues`, `items`, `series`, `series_by_id`.
-- `author_operations`: `get`, `update`, `delete`, `get_image`, `add_image`,
-  `update_image`, `delete_image`, `match`.
-- `series_operations`: `get`, `update`.
-- `podcast_operations`: `create`, `feed`, `opml_create`, `opml_parse`, `check_new`,
-  `clear_queue`, `download_episodes`, `downloads`, `get_episode`, `update_episode`,
-  `remove_episode`, `match_episodes`, `find_episode`.
-- `email_operations`: `get_settings`, `update_settings`, `update_ereader_devices`,
-  `send_ebook`, `test`.
-- `notification_operations`: `event_data`, `list`, `configure`, `create`, `test`,
-  `delete`, `update`, `test_one`.
+- Libraries: `get_libraries`, `create_library`, `get_library_by_id`, `update_library_by_id`,
+  `delete_library_by_id`, `get_library_items`, `get_library_authors`, `get_library_series`,
+  `search_library`, `scan_library`, `get_library_stats`.
+- Items: `get_item`, `update_item_media`, `match_item`, `scan_item`, `get_item_cover`,
+  `batch_get_items`, `batch_update_items`, `delete_item`.
+- Authors and series: `get_author_by_id`, `update_author_by_id`, `match_author_by_id`,
+  `get_series`, `update_series`.
+- Podcasts: `create_podcast`, `get_podcast_feed`, `check_new_episodes`, `download_episodes`,
+  `get_episode`, `update_episode`, `remove_episode`, `quick_match_episodes`.
+- Users, progress and sessions: `get_me`, `get_my_items_in_progress`, `update_my_progress`,
+  `get_users`, `get_sessions`, `get_open_sessions`.
+- Collections and playlists: `get_collections`, `create_collection`, `get_playlists`,
+  `create_playlist`, `add_item_to_playlist`.
+- Email and notifications: `get_email_settings`, `update_email_settings`, `send_test_email`,
+  `get_notifications`, `create_notification`, `send_test_notification`.
+- Server: `get_server_status`, `get_backups`, `create_backup`, `get_filesystem_paths`.
 
 Use exact opaque IDs returned by reads. Do not infer an item, library, author, series,
 podcast, episode, notification, or device from a display name alone.

@@ -15,6 +15,5 @@ from audiobookshelf_mcp.auth import get_client
 connector = Connector(
     api=ApiClientSystem,
     get_client=get_client,
-    tools="audiobookshelf_mcp.mcp",
     instructions="Audiobookshelf library and podcast operations. Media records and account configuration are sensitive; use the governed current tool surface.",
 )

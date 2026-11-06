@@ -18,7 +18,7 @@ metadata:
 
 Domain-typed access to Audiobookshelf **libraries**, **library items** (audiobooks /
 ebooks) and **series** through the `audiobookshelf-mcp` MCP server. Prefer these
-condensed tools over raw HTTP — they carry the Audiobookshelf field conventions and
+typed tools over raw HTTP — they carry the Audiobookshelf field conventions and
 return item-shaped records.
 
 ## When to use
@@ -29,10 +29,9 @@ return item-shaped records.
 
 ## When NOT to use
 - Podcast items, feeds, or episodes → `audiobookshelf-podcast-manager`.
-- Author portrait/image upload or provider match → the raw `author_operations` tool.
+- Author portrait/image upload or provider match -> `audiobookshelf_add_author_image_by_id`, `audiobookshelf_match_author_by_id`.
 - Pushing the catalog into the epistemic-graph → `audiobookshelf-kg-ingestion`.
-- Email / ereader / notification settings → the raw `email_operations` /
-  `notification_operations` tools.
+- Email / ereader / notification settings -> the `audiobookshelf_*_email_*` and `audiobookshelf_*_notification*` tools.
 
 ## Prerequisites & environment
 Connect via the `mcp-client` skill against the **`audiobookshelf-mcp`** MCP server.
@@ -43,43 +42,32 @@ Connect via the `mcp-client` skill against the **`audiobookshelf-mcp`** MCP serv
 | `AUDIOBOOKSHELF_TOKEN` | ✅ | Bearer API token (Config → API Keys) |
 | `AUDIOBOOKSHELF_SSL_VERIFY` | optional | TLS verification toggle |
 
-`MCP_TOOL_MODE` (`condensed`|`verbose`|`both`) selects the condensed surface (used
-below) vs. the one-to-one verbose tools.
+## Tools
+One typed tool per API operation; pass real arguments, not JSON strings.
 
-## Tools & actions
-Prefer the **condensed** tools; each takes `action` + a `params_json` **JSON string**
-whose keys are passed straight to the client method.
-
-| Condensed tool | Actions |
-|----------------|---------|
-| `library_operations` | `list`, `get`, `create`, `update`, `delete`, `authors`, `items`, `series`, `series_by_id`, `delete_issues` |
-| `series_operations` | `get`, `update` |
+| Task | Tool |
+|------|------|
+| List / read / create / update / delete a library | `audiobookshelf_get_libraries`, `audiobookshelf_get_library_by_id`, `audiobookshelf_create_library`, `audiobookshelf_update_library_by_id`, `audiobookshelf_delete_library_by_id` |
+| Browse a library | `audiobookshelf_get_library_items`, `audiobookshelf_get_library_authors`, `audiobookshelf_get_library_series`, `audiobookshelf_get_library_series_by_id`, `audiobookshelf_search_library`, `audiobookshelf_get_library_filter_data`, `audiobookshelf_get_library_stats`, `audiobookshelf_get_library_personalized` |
+| Read one item | `audiobookshelf_get_item` (also `audiobookshelf_get_item_cover`) |
+| Collections | `audiobookshelf_get_collections`, `audiobookshelf_get_collection`, `audiobookshelf_get_library_collections` |
+| Series | `audiobookshelf_get_series`, `audiobookshelf_update_series` |
 
 ### Key parameters
-- `id` — the library id (required for `get`/`items`/`series`/`authors`) or series id.
-- `series_id` — required for `series_by_id`.
-- `items` supports `limit`, `page`, `sort`, `desc`, `filter`, `collapseseries`.
+- `id` - the library id (or item id for `audiobookshelf_get_item`).
+- `series_id` - required for `audiobookshelf_get_library_series_by_id`.
+- `audiobookshelf_get_library_items` supports `limit`, `page`, `sort`, `desc`, `filter`, `collapseseries`.
 
-## Recipes (`params_json`)
-List all libraries:
-```json
-{}
-```
-Page through a library's items, newest first:
-```json
-{"id":"<library_id>","limit":25,"page":0,"sort":"addedAt","desc":1}
-```
-Get the series inside a library:
-```json
-{"id":"<library_id>"}
-```
-Read one series with its books:
-```json
-{"id":"<library_id>","series_id":"<series_id>"}
-```
+## Recipes
+List all libraries: call `audiobookshelf_get_libraries` with no arguments.
+
+Page through a library's items, newest first: `audiobookshelf_get_library_items` with
+`id=<library_id>`, `limit=25`, `page=0`, `sort=addedAt`, `desc=1`.
+
+Read one series with its books: `audiobookshelf_get_library_series_by_id` with
+`id=<library_id>`, `series_id=<series_id>`.
 
 ## Gotchas
-- `params_json` is a **string** of JSON, not an object — serialize it.
 - `list` returns `{"libraries":[...]}`; `items` returns `{"results":[...],"total":N,"page":P}` — page is 0-based.
 - A library is single-media-type: its `mediaType` is `book` **or** `podcast`; the
   `items` of a podcast library are podcasts, not audiobooks.
