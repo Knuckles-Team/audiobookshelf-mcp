@@ -81,6 +81,3 @@ compose_env = ["AUDIOBOOKSHELF_URL=${AUDIOBOOKSHELF_URL:?supply AUDIOBOOKSHELF_U
 
 [tool.pipelines.codespell]
 exclude = ["audiobookshelf_mcp/specs"]
-
-[tool.pipelines.api_integration]
-baseline = 14.5
