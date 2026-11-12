@@ -20,11 +20,11 @@ material or a machine-specific trust path.
 import logging
 from typing import Any
 
-from scion_sdk.config import setting
 from scion_sdk.auth.provider_profile import (
     ResolvedProviderProfile,
     resolve_selected_provider_profile,
 )
+from scion_sdk.config import setting
 from scion_sdk.exceptions import AuthError, UnauthorizedError
 from scion_sdk.tls.profile import ResolvedTLSProfile
 from scion_sdk.tls.resolve import (
