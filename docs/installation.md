@@ -14,7 +14,7 @@ extras. Connection and secret values are configured after installation.
 uvx --from "audiobookshelf-mcp[mcp]" audiobookshelf-mcp
 ```
 
-Pydantic-AI server and the full epistemic-graph runtime are required.
+Pydantic-AI server and the full medulla runtime are required.
 
 ## Install from PyPI
 

@@ -67,7 +67,7 @@ podcast, episode, notification, or device from a display name alone.
 ## Use governed graph synchronization
 
 This provider exposes no direct graph-write or raw-media-ingestion tool. When catalog
-metadata must enter epistemic-graph, request Arbora source synchronization through a
+metadata must enter medulla, request Arbora source synchronization through a
 centrally compiled and operator-approved signed capability bundle. Require exact live
 tool-schema pins plus tenant, ACL, classification, retention, provenance, redaction,
 and deletion policy. A missing or stale certification must fail closed.

@@ -2,7 +2,7 @@
 name: audiobookshelf-kg-ingestion
 skill_type: skill
 description: >-
-  Natively push an Audiobookshelf collection into the epistemic-graph knowledge graph
+  Natively push an Audiobookshelf collection into the medulla knowledge graph
   via the audiobookshelf-mcp MCP server — libraries, audiobooks/podcasts, authors and
   series become typed OWL nodes (:Library / :Book / :Podcast / :Author / :Series) with
   authorship, series and containment links, and cover art can ride along as :MediaAsset
@@ -17,7 +17,7 @@ metadata:
 ---
 # Audiobookshelf Knowledge-Graph Ingestion
 
-Native "maximum ingestion" of an Audiobookshelf server into the ONE epistemic-graph
+Native "maximum ingestion" of an Audiobookshelf server into the ONE medulla
 knowledge graph. One MCP tool lists the collection via the real client and pushes it as
 **typed OWL nodes** matching `audiobookshelf_mcp/ontology/audiobookshelf.ttl`.
 
@@ -34,7 +34,7 @@ knowledge graph. One MCP tool lists the collection via the real client and pushe
 
 ## Prerequisites & environment
 Connect via the `mcp-client` skill against the **`audiobookshelf-mcp`** MCP server. A
-live epistemic-graph engine must be reachable for writes — otherwise the tool **no-ops**
+live medulla engine must be reachable for writes — otherwise the tool **no-ops**
 cleanly and returns `{"ingested": null}` (it never fails the call).
 
 | Variable | Required | Notes |

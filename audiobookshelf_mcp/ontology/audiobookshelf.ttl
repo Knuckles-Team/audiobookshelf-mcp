@@ -1,7 +1,8 @@
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix core: <https://knuckles-team.github.io/ontology/core#> .
 @prefix foaf: <http://xmlns.com/foaf/0.1/> .
 @prefix dc: <http://purl.org/dc/terms/> .
-@prefix : <http://knuckles.team/kg#> .
+@prefix : <https://knuckles-team.github.io/ontology/connector/audiobookshelf#> .
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
@@ -19,24 +20,26 @@
     rdfs:comment "An Audiobookshelf library — a named collection of a single media type, book or podcast (audiobookshelf_get_libraries / audiobookshelf_get_library_by_id)." .
 
 :Book a owl:Class ;
-    rdfs:subClassOf :MediaAsset ;
+    rdfs:subClassOf core:MediaFile ;
     rdfs:label "Book" ;
     rdfs:comment "An audiobook / ebook library item, a book-type MediaAsset with title, author, narrator and cover (audiobookshelf_get_library_items)." .
 
 :Podcast a owl:Class ;
-    rdfs:subClassOf :MediaAsset ;
+    rdfs:subClassOf core:MediaFile ;
     rdfs:label "Podcast" ;
     rdfs:comment "A podcast library item aggregating downloadable episodes (audiobookshelf_create_podcast / audiobookshelf_get_podcast_feed)." .
 
 :PodcastEpisode a owl:Class ;
-    rdfs:subClassOf :MediaAsset ;
+    rdfs:subClassOf core:MediaFile ;
     rdfs:label "Podcast Episode" ;
     rdfs:comment "A single episode of a Podcast, with its own audio track (audiobookshelf_get_episode)." .
 
-:Author a owl:Class .
+:Author a owl:Class ;
+    rdfs:subClassOf core:Author .
 
 
 :Series a owl:Class ;
+    rdfs:subClassOf core:Series ;
     rdfs:label "Series" ;
     rdfs:comment "An ordered named grouping of books within a library (audiobookshelf_get_series, audiobookshelf_get_library_series)." .
 
@@ -57,7 +60,7 @@
     rdfs:label "narrated by" ;
     rdfs:comment "Links a Book to the Person who narrated the audiobook." ;
     rdfs:domain :Book ;
-    rdfs:range :Person .
+    rdfs:range core:Person .
 
 :partOfSeries a owl:ObjectProperty ;
     rdfs:label "part of series" ;
@@ -74,7 +77,7 @@
 :hasCover a owl:ObjectProperty ;
     rdfs:label "has cover" ;
     rdfs:comment "Links a Book, Podcast or Author to the stored cover / portrait image Blob (a :MediaAsset in the shared blob store)." ;
-    rdfs:range :MediaAsset .
+    rdfs:range core:MediaFile .
 
 # --- fields (owl:DatatypeProperty) ---
 
@@ -138,11 +141,11 @@
     rdfs:comment "RSS feed URL of a Podcast." ;
     rdfs:range xsd:string .
 
-<http://knuckles.team/kg/audiobookshelf> a owl:Ontology ;
+<https://knuckles-team.github.io/ontology/connector/audiobookshelf> a owl:Ontology ;
     rdfs:label "Audiobookshelf Media Ontology" ;
     rdfs:comment """Audiobookshelf self-hosted audiobook and podcast server model — libraries,
     audiobooks and ebooks, podcasts and their episodes, authors and series — with the
     authorship, narration, series and containment relationships, plus cover/audio blobs
     riding the shared :MediaAsset store, federated into the scion-sdk knowledge-graph hub.""" .
 
-<http://knuckles.team/kg#Library> rdfs:subClassOf <http://knuckles.team/kg#Collection> .
+<https://knuckles-team.github.io/ontology/connector/audiobookshelf#Library> rdfs:subClassOf <https://knuckles-team.github.io/ontology/core#Collection> .
