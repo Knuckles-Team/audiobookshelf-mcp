@@ -1,4 +1,4 @@
-"""Native epistemic-graph blob ingestion — Wire-First cover-art coverage.
+"""Native medulla blob ingestion — Wire-First cover-art coverage.
 
 Exercises the real ``store_cover`` / ``fetch_and_store_item_cover`` seam with a fake
 ``MediaStore`` and a fake authenticated session (no engine required).

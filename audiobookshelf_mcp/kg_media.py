@@ -1,4 +1,4 @@
-"""Native epistemic-graph blob ingestion for Audiobookshelf cover art.
+"""Native medulla blob ingestion for Audiobookshelf cover art.
 
 CONCEPT:AU-KG.ingest.list-durable-media. Audiobookshelf items carry cover images (and
 audio tracks); this seam captures those raw bytes as content-addressed **blobs** with a

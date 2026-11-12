@@ -1,7 +1,7 @@
-"""Epistemic-graph ingestion for Audiobookshelf records (typed graph nodes).
+"""Medulla ingestion for Audiobookshelf records (typed graph nodes).
 
 CONCEPT:AU-KG.ingest.enterprise-source-extractor. The package pushes its data into
-the ONE epistemic-graph knowledge graph as **typed OWL nodes** (``:Library``,
+the ONE medulla knowledge graph as **typed OWL nodes** (``:Library``,
 ``:Book``, ``:Podcast``, ``:Author``, ``:Series``) + links, matching the classes
 federated by ``audiobookshelf_mcp.ontology``, through ``scion_sdk.ingest``
 -- the generated ``SourceIngest`` client, not a local ingestion helper.

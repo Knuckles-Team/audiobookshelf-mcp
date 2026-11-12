@@ -32,6 +32,6 @@ The server exposes one typed tool per Audiobookshelf API operation (library, ite
 podcast, user, progress, session, collection, playlist, backup, email, notification and server
 tools, each prefixed `audiobookshelf_`). Enable only the operations authorized for the connector identity.
 
-When catalog metadata must enter epistemic-graph, request centrally governed Arbora
+When catalog metadata must enter medulla, request centrally governed Arbora
 source synchronization. The provider exposes no direct graph-write or raw-cover
 ingestion action. See [Configuration, trust, and privacy](configuration.md).

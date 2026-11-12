@@ -30,7 +30,7 @@ return item-shaped records.
 ## When NOT to use
 - Podcast items, feeds, or episodes → `audiobookshelf-podcast-manager`.
 - Author portrait/image upload or provider match -> `audiobookshelf_add_author_image_by_id`, `audiobookshelf_match_author_by_id`.
-- Pushing the catalog into the epistemic-graph → `audiobookshelf-kg-ingestion`.
+- Pushing the catalog into the medulla → `audiobookshelf-kg-ingestion`.
 - Email / ereader / notification settings -> the `audiobookshelf_*_email_*` and `audiobookshelf_*_notification*` tools.
 
 ## Prerequisites & environment

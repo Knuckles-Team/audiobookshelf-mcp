@@ -29,7 +29,7 @@ HTTP — it carries the feed/episode field conventions.
 ## When NOT to use
 - Audiobook / ebook libraries and series → `audiobookshelf-library-catalog`.
 - Author portrait/provider-match curation -> `audiobookshelf_match_author_by_id` and the author image tools.
-- Pushing podcasts into the epistemic-graph → `audiobookshelf-kg-ingestion`.
+- Pushing podcasts into the medulla → `audiobookshelf-kg-ingestion`.
 
 ## Prerequisites & environment
 Connect via the `mcp-client` skill against the **`audiobookshelf-mcp`** MCP server.

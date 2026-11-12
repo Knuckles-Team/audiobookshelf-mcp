@@ -143,7 +143,7 @@ Pick the extra that matches what the operator want to run:
 
 | Extra | Installs | Use when |
 |-------|----------|----------|
-| `audiobookshelf-mcp[mcp]` | MCP server (`scion-sdk`) plus the mandatory full epistemic-graph base runtime | The operator run the **MCP server** |
+| `audiobookshelf-mcp[mcp]` | MCP server (`scion-sdk`) plus the mandatory full medulla base runtime | The operator run the **MCP server** |
 | `audiobookshelf-mcp[all]` | MCP + test tooling | Development |
 
 ```bash
@@ -160,20 +160,20 @@ One multi-stage `docker/Dockerfile` builds the MCP-only image (`--target mcp`):
 
 | Image tag | Build target | Contents | Entrypoint |
 |-----------|--------------|----------|------------|
-| `audiobookshelf-mcp:mcp` | `--target mcp` | MCP server plus the mandatory full epistemic-graph base dependency | `audiobookshelf-mcp` |
+| `audiobookshelf-mcp:mcp` | `--target mcp` | MCP server plus the mandatory full medulla base dependency | `audiobookshelf-mcp` |
 
 ```bash
 docker build --target mcp -t audiobookshelf-mcp:mcp -f docker/Dockerfile .
 ```
 
 
-### Knowledge-graph database (`epistemic-graph`)
+### Knowledge-graph database (`medulla`)
 
-Every install receives `epistemic-graph[full]` through the current Scion SDK base
+Every install receives `medulla[full]` through the current Scion SDK base
 dependency. The connector does not open an insecure engine listener or silently select a
 machine-specific engine. Deployment topology and identity are resolved by AgentConfig. For a
 shared production authority, follow the
-[epistemic-graph deployment guide](https://knuckles-team.github.io/epistemic-graph/deployment/).
+[medulla deployment guide](https://knuckles-team.github.io/medulla/deployment/).
 
 ### Console scripts
 
@@ -229,7 +229,7 @@ Tools are action-routed — pass an `action` plus a JSON `params_json` string:
 
 > **Install the connector-focused `[mcp]` extra.** Examples use `audiobookshelf-mcp[mcp]` to add
 > FastMCP / FastAPI through `scion-sdk`; the required Scion SDK core
-> still carries `epistemic-graph[full]`. The `[agent-runtime]` extra additionally
+> still carries `medulla[full]`. The `[agent-runtime]` extra additionally
 > enables model orchestration.
 
 #### stdio Transport (local IDEs — Cursor, Claude Desktop, VS Code)
