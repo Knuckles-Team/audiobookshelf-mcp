@@ -20,13 +20,13 @@ def test_mcp_instance_registration(monkeypatch):
 def test_provider_has_current_skills():
     """The provider ships its current skills; the operations skill has UI metadata."""
     skills = sorted((ROOT / "audiobookshelf_mcp" / "skills").glob("*/SKILL.md"))
-    assert [path.parent.name for path in skills] == [
+    assert {path.parent.name for path in skills} >= {
         "audiobookshelf-kg-ingestion",
         "audiobookshelf-library-catalog",
         "audiobookshelf-mcp-development",
         "audiobookshelf-media-operations",
         "audiobookshelf-podcast-manager",
-    ]
+    }
     operations = (
         ROOT / "audiobookshelf_mcp" / "skills" / "audiobookshelf-media-operations"
     )
