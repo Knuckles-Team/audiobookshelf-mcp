@@ -144,3 +144,5 @@
     audiobooks and ebooks, podcasts and their episodes, authors and series — with the
     authorship, narration, series and containment relationships, plus cover/audio blobs
     riding the shared :MediaAsset store, federated into the scion-sdk knowledge-graph hub.""" .
+
+<http://knuckles.team/kg#Library> rdfs:subClassOf <http://knuckles.team/kg#Collection> .

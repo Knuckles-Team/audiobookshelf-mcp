@@ -8,7 +8,7 @@ Priority:
    shared ``scion_sdk.mcp.delegated_auth`` helper.
 2. **Fixed credentials** — resolves the launcher-selected provider profile
    (``AGENT_PROVIDER_PROFILE`` over ``PROVIDER_CONFIGS``) through
-   ``scion_sdk.credentials.provider_profile``, or falls back to the
+   ``scion_sdk.auth.provider_profile``, or falls back to the
    process-injected ``AUDIOBOOKSHELF_TOKEN`` value.
 
 Endpoint and credential values are resolved at runtime through the shared
@@ -20,11 +20,11 @@ material or a machine-specific trust path.
 import logging
 from typing import Any
 
-from scion_sdk.config import setting
-from scion_sdk.credentials.provider_profile import (
+from scion_sdk.auth.provider_profile import (
     ResolvedProviderProfile,
     resolve_selected_provider_profile,
 )
+from scion_sdk.config import setting
 from scion_sdk.exceptions import AuthError, UnauthorizedError
 from scion_sdk.tls.profile import ResolvedTLSProfile
 from scion_sdk.tls.resolve import (
