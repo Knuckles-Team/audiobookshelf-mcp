@@ -3,7 +3,7 @@
 Exercises the real ``ingest_entities`` / ``ingest_libraries`` / ``ingest_library_items``
 / ``ingest_authors`` seam against a fake transport one level below the SDK's own
 ``SourceIngest`` request builder, asserting the committed nodes/edges and the
-Audiobookshelf record -> :Library / :Book / :Author / :Series mapping.
+Audiobookshelf record -> :Library / :Book / :Person / :Series mapping.
 CONCEPT:AU-KG.ingest.enterprise-source-extractor.
 
 The fake fakes the **transport boundary**, not the SDK's own request-building/
