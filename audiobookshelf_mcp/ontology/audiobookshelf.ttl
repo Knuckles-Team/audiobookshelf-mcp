@@ -5,13 +5,14 @@
 @prefix : <https://knuckles-team.github.io/ontology/connector/audiobookshelf#> .
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix mv: <https://knuckles-team.github.io/ontology/media#> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
 # Audiobookshelf media ontology — libraries, audiobooks, podcasts, authors and series
 # served by the audiobookshelf-mcp MCP tool surface (audiobookshelf_* typed tools). All classes and properties live in the shared
 # `:` (kg#) namespace; only the owl:Ontology node gets the per-package IRI. :Book / :Podcast /
 # :PodcastEpisode specialize the shared :MediaAsset (their cover art + audio ride the shared
-# :Blob / :MediaAsset store); :Author specializes the shared :Person.
+# :Blob / :MediaAsset store); :Author is not declared here; contributors are core :Person nodes linked with mv:contributor.
 
 # --- classes (owl:Class) ---
 
@@ -34,10 +35,6 @@
     rdfs:label "Podcast Episode" ;
     rdfs:comment "A single episode of a Podcast, with its own audio track (audiobookshelf_get_episode)." .
 
-:Author a owl:Class ;
-    rdfs:subClassOf core:Author .
-
-
 :Series a owl:Class ;
     rdfs:subClassOf core:Series ;
     rdfs:label "Series" ;
@@ -52,9 +49,10 @@
 
 :writtenBy a owl:ObjectProperty ;
     rdfs:label "written by" ;
-    rdfs:comment "Links a Book to the Author who wrote it." ;
+    rdfs:comment "Links a Book to the Person who wrote it (an mv:contributor)." ;
+    rdfs:subPropertyOf mv:contributor ;
     rdfs:domain :Book ;
-    rdfs:range :Author .
+    rdfs:range core:Person .
 
 :narratedBy a owl:ObjectProperty ;
     rdfs:label "narrated by" ;

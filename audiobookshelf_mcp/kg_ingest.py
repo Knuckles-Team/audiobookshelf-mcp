@@ -2,7 +2,7 @@
 
 CONCEPT:AU-KG.ingest.enterprise-source-extractor. The package pushes its data into
 the ONE medulla knowledge graph as **typed OWL nodes** (``:Library``,
-``:Book``, ``:Podcast``, ``:Author``, ``:Series``) + links, matching the classes
+``:Book``, ``:Podcast``, ``:Person``, ``:Series``) + links, matching the classes
 federated by ``audiobookshelf_mcp.ontology``, through ``scion_sdk.ingest``
 -- the generated ``SourceIngest`` client, not a local ingestion helper.
 
@@ -328,7 +328,7 @@ def _book_entity(
 def _book_author_links(
     node_id: str, meta: dict[str, Any]
 ) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
-    """Build the ``:Author`` entities + ``:writtenBy`` relationships for one book."""
+    """Build the ``:Person`` entities + ``:writtenBy`` relationships for one book."""
     entities: list[dict[str, Any]] = []
     relationships: list[dict[str, Any]] = []
     for author in meta.get("authors") or []:
@@ -341,7 +341,7 @@ def _book_author_links(
         entities.append(
             {
                 "id": author_id,
-                "node_type": "Author",
+                "node_type": "Person",
                 "name": aname,
                 "externalToolId": str(akey),
             }
@@ -396,7 +396,7 @@ def _library_item_entity_and_links(
     """Build ``(node_entity, extra_entities, relationships)`` for one library item.
 
     ``node_entity`` is the ``:Book``/``:Podcast`` node itself; ``extra_entities``
-    holds any ``:Author``/``:Series`` nodes it references (books only);
+    holds any ``:Person``/``:Series`` nodes it references (books only);
     ``relationships`` holds the ``:writtenBy``/``:partOfSeries``/``:inLibrary`` edges.
     """
     media_type = item.get("mediaType") or "book"
@@ -411,7 +411,7 @@ def _library_item_entity_and_links(
         node = _podcast_entity(iid, meta, media, item)
     else:
         node = _book_entity(iid, meta, media, item)
-        # authors -> :Author + :writtenBy ; series -> :Series + :partOfSeries
+        # authors -> :Person + :writtenBy ; series -> :Series + :partOfSeries
         author_entities, author_rels = _book_author_links(node["id"], meta)
         series_entities, series_rels = _book_series_links(node["id"], meta)
         extra_entities.extend(author_entities)
@@ -468,7 +468,7 @@ async def ingest_authors(
     library_id: str | None = None,
     ingest: KnowledgeIngest | None = None,
 ) -> dict[str, int] | None:
-    """Map author records → ``:Author`` nodes (+ ``:inLibrary`` when a library is known)."""
+    """Map author records → ``:Person`` nodes (+ ``:inLibrary`` when a library is known)."""
     entities: list[dict[str, Any]] = []
     relationships: list[dict[str, Any]] = []
     for author in _unwrap(authors, "authors", "results"):
@@ -479,7 +479,7 @@ async def ingest_authors(
         entities.append(
             {
                 "id": author_id,
-                "node_type": "Author",
+                "node_type": "Person",
                 "name": author.get("name"),
                 "description": author.get("description"),
                 "numBooks": author.get("numBooks"),
