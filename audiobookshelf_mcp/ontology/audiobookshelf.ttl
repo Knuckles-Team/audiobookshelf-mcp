@@ -20,57 +20,26 @@
     rdfs:label "Library" ;
     rdfs:comment "An Audiobookshelf library — a named collection of a single media type, book or podcast (audiobookshelf_get_libraries / audiobookshelf_get_library_by_id)." .
 
-:Book a owl:Class ;
-    rdfs:subClassOf core:MediaFile ;
-    rdfs:label "Book" ;
-    rdfs:comment "An audiobook / ebook library item, a book-type MediaAsset with title, author, narrator and cover (audiobookshelf_get_library_items)." .
-
-:Podcast a owl:Class ;
-    rdfs:subClassOf core:MediaFile ;
-    rdfs:label "Podcast" ;
-    rdfs:comment "A podcast library item aggregating downloadable episodes (audiobookshelf_create_podcast / audiobookshelf_get_podcast_feed)." .
-
-:PodcastEpisode a owl:Class ;
-    rdfs:subClassOf core:MediaFile ;
-    rdfs:label "Podcast Episode" ;
-    rdfs:comment "A single episode of a Podcast, with its own audio track (audiobookshelf_get_episode)." .
-
-:Series a owl:Class ;
-    rdfs:subClassOf core:Series ;
-    rdfs:label "Series" ;
-    rdfs:comment "An ordered named grouping of books within a library (audiobookshelf_get_series, audiobookshelf_get_library_series)." .
-
 # --- links (owl:ObjectProperty) ---
-
-:inLibrary a owl:ObjectProperty ;
-    rdfs:label "in library" ;
-    rdfs:comment "Links a Book, Podcast, Author or Series to the Library that contains it." ;
-    rdfs:range :Library .
 
 :writtenBy a owl:ObjectProperty ;
     rdfs:label "written by" ;
     rdfs:comment "Links a Book to the Person who wrote it (an mv:contributor)." ;
     rdfs:subPropertyOf mv:contributor ;
-    rdfs:domain :Book ;
+    rdfs:domain core:Book ;
     rdfs:range core:Person .
 
 :narratedBy a owl:ObjectProperty ;
     rdfs:label "narrated by" ;
     rdfs:comment "Links a Book to the Person who narrated the audiobook." ;
-    rdfs:domain :Book ;
+    rdfs:domain core:Book ;
     rdfs:range core:Person .
-
-:partOfSeries a owl:ObjectProperty ;
-    rdfs:label "part of series" ;
-    rdfs:comment "Links a Book to a Series it belongs to." ;
-    rdfs:domain :Book ;
-    rdfs:range :Series .
 
 :hasEpisode a owl:ObjectProperty ;
     rdfs:label "has episode" ;
     rdfs:comment "Links a Podcast to a PodcastEpisode it contains." ;
-    rdfs:domain :Podcast ;
-    rdfs:range :PodcastEpisode .
+    rdfs:domain core:Podcast ;
+    rdfs:range core:PodcastEpisode .
 
 :hasCover a owl:ObjectProperty ;
     rdfs:label "has cover" ;
@@ -84,11 +53,6 @@
     rdfs:comment "Media type of a Library or item — 'book' or 'podcast'." ;
     rdfs:range xsd:string .
 
-:title a owl:DatatypeProperty ;
-    rdfs:label "title" ;
-    rdfs:comment "Display title of a Book, Podcast or PodcastEpisode." ;
-    rdfs:range xsd:string .
-
 :subtitle a owl:DatatypeProperty ;
     rdfs:label "subtitle" ;
     rdfs:comment "Optional subtitle of a Book." ;
@@ -97,11 +61,6 @@
 :publishedYear a owl:DatatypeProperty ;
     rdfs:label "published year" ;
     rdfs:comment "Publication year of a Book or Podcast." ;
-    rdfs:range xsd:string .
-
-:isbn a owl:DatatypeProperty ;
-    rdfs:label "isbn" ;
-    rdfs:comment "ISBN identifier of a Book." ;
     rdfs:range xsd:string .
 
 :asin a owl:DatatypeProperty ;
@@ -132,11 +91,6 @@
 :coverPath a owl:DatatypeProperty ;
     rdfs:label "cover path" ;
     rdfs:comment "On-disk path of the cover image for a Book or Podcast, before blob capture." ;
-    rdfs:range xsd:string .
-
-:feedUrl a owl:DatatypeProperty ;
-    rdfs:label "feed url" ;
-    rdfs:comment "RSS feed URL of a Podcast." ;
     rdfs:range xsd:string .
 
 <https://knuckles-team.github.io/ontology/connector/audiobookshelf> a owl:Ontology ;
