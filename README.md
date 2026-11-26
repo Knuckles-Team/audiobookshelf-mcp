@@ -5,24 +5,24 @@
 ![MCP Server](https://badge.mcpx.dev?type=server 'MCP Server')
 ![PyPI - Downloads](https://img.shields.io/pypi/dd/audiobookshelf-mcp)
 ![GitHub Repo stars](https://img.shields.io/github/stars/Knuckles-Team/audiobookshelf-mcp)
+![GitHub forks](https://img.shields.io/github/forks/Knuckles-Team/audiobookshelf-mcp)
+![GitHub contributors](https://img.shields.io/github/contributors/Knuckles-Team/audiobookshelf-mcp)
 ![PyPI - License](https://img.shields.io/pypi/l/audiobookshelf-mcp)
+![GitHub](https://img.shields.io/github/license/Knuckles-Team/audiobookshelf-mcp)
 ![GitHub last commit (by committer)](https://img.shields.io/github/last-commit/Knuckles-Team/audiobookshelf-mcp)
+![GitHub pull requests](https://img.shields.io/github/issues-pr/Knuckles-Team/audiobookshelf-mcp)
+![GitHub closed pull requests](https://img.shields.io/github/issues-pr-closed/Knuckles-Team/audiobookshelf-mcp)
+![GitHub issues](https://img.shields.io/github/issues/Knuckles-Team/audiobookshelf-mcp)
+![GitHub top language](https://img.shields.io/github/languages/top/Knuckles-Team/audiobookshelf-mcp)
+![GitHub language count](https://img.shields.io/github/languages/count/Knuckles-Team/audiobookshelf-mcp)
+![GitHub repo size](https://img.shields.io/github/repo-size/Knuckles-Team/audiobookshelf-mcp)
+![GitHub repo file count (file type)](https://img.shields.io/github/directory-file-count/Knuckles-Team/audiobookshelf-mcp)
+![PyPI - Wheel](https://img.shields.io/pypi/wheel/audiobookshelf-mcp)
+![PyPI - Implementation](https://img.shields.io/pypi/implementation/audiobookshelf-mcp)
 
-> **Documentation** — Installation, deployment, usage across the API, CLI, and MCP
-> backing platform are maintained in the
+> **Documentation** — Installation, deployment, and usage across the API, CLI, MCP,
+> and A2A agent interfaces are maintained in the
 > [official documentation](https://knuckles-team.github.io/audiobookshelf-mcp/).
-
----
-
-## Table of Contents
-
-- [Overview](#overview)
-- [Key Features](#key-features)
-- [Available MCP Tools](#available-mcp-tools)
-- [Installation](#installation)
-- [Usage](#usage)
-- [MCP](#mcp)
-- [Documentation](#documentation)
 
 ---
 
@@ -34,6 +34,8 @@ The package exposes an operator-selected Audiobookshelf service through typed,
 action-routed tools without storing an endpoint, credential, or instance profile.
 
 This repository is actively maintained - Contributions are welcome!
+
+---
 
 ## Key Features
 
@@ -50,176 +52,7 @@ This repository is actively maintained - Contributions are welcome!
 - **Per-tool toggles** — enable or disable each tool domain with environment switches.
 - **Enterprise-ready** — OTEL/Langfuse telemetry and optional Eunomia access governance.
 
-## Available MCP Tools
-
-Each tool is **action-routed**: pass an `action` and a JSON `params_json` payload. Tool
-domains can be toggled on or off with the listed environment variable. The table below is
-**auto-generated from the live server** by the `mcp-readme-table` pre-commit hook
-(`python -m scion_sdk.mcp.readme_tools`) — do not edit it by hand.
-
-<!-- MCP-TOOLS-TABLE:START -->
-
-#### Condensed action-routed tools (`MCP_TOOL_MODE=condensed`)
-
-| MCP Tool | Toggle Env Var | Description |
-|----------|----------------|-------------|
-| `author_operations` | `AUTHORSTOOL` | Manage Audiobookshelf authors. CONCEPT:AS-OS.identity.abs-2 |
-| `email_operations` | `EMAILTOOL` | Manage Audiobookshelf email settings and e-reader delivery. CONCEPT:AS-OS.governance.abs-3 |
-| `library_operations` | `LIBRARIESTOOL` | Manage Audiobookshelf libraries. CONCEPT:AS-OS.identity.abs |
-| `notification_operations` | `NOTIFICATIONTOOL` | Manage Audiobookshelf notifications. CONCEPT:AS-OS.governance.abs-4 |
-| `podcast_operations` | `PODCASTSTOOL` | Manage Audiobookshelf podcasts and episodes. CONCEPT:AS-OS.governance.abs-2 |
-| `series_operations` | `SERIESTOOL` | Manage Audiobookshelf series. CONCEPT:AS-OS.governance.abs |
-
-#### Verbose 1:1 API-mapped tools (`MCP_TOOL_MODE=verbose` or `both`)
-
-<details>
-<summary>46 per-operation tools — one per public API method (click to expand)</summary>
-
-| MCP Tool | Toggle Env Var | Description |
-|----------|----------------|-------------|
-| `audiobookshelf_add_author_image_by_id` | `AUTHORSTOOL` | Upload/add an author's image by id. |
-| `audiobookshelf_bulk_create_podcasts_from_opml_feed` | `PODCASTSTOOL` | Bulk create podcasts from an OPML feed. |
-| `audiobookshelf_check_new_episodes` | `PODCASTSTOOL` | Check for new episodes for a podcast by id. |
-| `audiobookshelf_clear_episode_download_queue` | `PODCASTSTOOL` | Clear the episode download queue for a podcast by id. |
-| `audiobookshelf_configure_notification_settings` | `NOTIFICATIONTOOL` | Update the global notification settings. |
-| `audiobookshelf_create_library` | `LIBRARIESTOOL` | Create a new library. |
-| `audiobookshelf_create_notification` | `NOTIFICATIONTOOL` | Create a new notification. |
-| `audiobookshelf_create_podcast` | `PODCASTSTOOL` | Create a new podcast library item. |
-| `audiobookshelf_delete_author_by_id` | `AUTHORSTOOL` | Delete an author by id. |
-| `audiobookshelf_delete_author_image_by_id` | `AUTHORSTOOL` | Remove an author's image by id. |
-| `audiobookshelf_delete_library_by_id` | `LIBRARIESTOOL` | Delete a library by id. |
-| `audiobookshelf_delete_library_issues` | `LIBRARIESTOOL` | Remove all library items that have issues from a library. |
-| `audiobookshelf_delete_notification` | `NOTIFICATIONTOOL` | Delete a notification by id. |
-| `audiobookshelf_download_episodes` | `PODCASTSTOOL` | Queue episodes for download for a podcast by id. |
-| `audiobookshelf_find_episode` | `PODCASTSTOOL` | Search for a podcast episode by id. |
-| `audiobookshelf_get_author_by_id` | `AUTHORSTOOL` | Get a single author by id (supports include/library params). |
-| `audiobookshelf_get_author_image_by_id` | `AUTHORSTOOL` | Get an author's image by id. |
-| `audiobookshelf_get_email_settings` | `EMAILTOOL` | Get the server email settings. |
-| `audiobookshelf_get_episode` | `PODCASTSTOOL` | Get a single podcast episode by id. |
-| `audiobookshelf_get_episode_downloads` | `PODCASTSTOOL` | Get the current episode download queue for a podcast by id. |
-| `audiobookshelf_get_feeds_from_opml_text` | `PODCASTSTOOL` | Parse feeds from raw OPML text. |
-| `audiobookshelf_get_libraries` | `LIBRARIESTOOL` | List all libraries. |
-| `audiobookshelf_get_library_authors` | `LIBRARIESTOOL` | Get the authors within a library. |
-| `audiobookshelf_get_library_by_id` | `LIBRARIESTOOL` | Get a single library by id. |
-| `audiobookshelf_get_library_items` | `LIBRARIESTOOL` | Get the items within a library (supports limit/page/sort/filter params). |
-| `audiobookshelf_get_library_series` | `LIBRARIESTOOL` | Get the series within a library. |
-| `audiobookshelf_get_library_series_by_id` | `LIBRARIESTOOL` | Get a single series within a library by id. |
-| `audiobookshelf_get_notification_event_data` | `NOTIFICATIONTOOL` | Get the available notification event data. |
-| `audiobookshelf_get_notifications` | `NOTIFICATIONTOOL` | Get the configured notification settings and notifications. |
-| `audiobookshelf_get_podcast_feed` | `PODCASTSTOOL` | Fetch a podcast RSS feed by URL. |
-| `audiobookshelf_get_series` | `SERIESTOOL` | Get a single series by id (supports include params). |
-| `audiobookshelf_match_author_by_id` | `AUTHORSTOOL` | Match an author against a metadata provider by id. |
-| `audiobookshelf_quick_match_episodes` | `PODCASTSTOOL` | Quick-match a podcast's episodes against a feed by id. |
-| `audiobookshelf_remove_episode` | `PODCASTSTOOL` | Remove a podcast episode by id. |
-| `audiobookshelf_send_default_test_notification` | `NOTIFICATIONTOOL` | Send a default test notification. |
-| `audiobookshelf_send_ebook_to_device` | `EMAILTOOL` | Send an ebook to a configured e-reader device. |
-| `audiobookshelf_send_test_email` | `EMAILTOOL` | Send a test email using the configured settings. |
-| `audiobookshelf_send_test_notification` | `NOTIFICATIONTOOL` | Send a test notification for a specific notification by id. |
-| `audiobookshelf_update_author_by_id` | `AUTHORSTOOL` | Update an author by id. |
-| `audiobookshelf_update_author_image_by_id` | `AUTHORSTOOL` | Update an author's image by id. |
-| `audiobookshelf_update_email_settings` | `EMAILTOOL` | Update the server email settings. |
-| `audiobookshelf_update_episode` | `PODCASTSTOOL` | Update a podcast episode by id. |
-| `audiobookshelf_update_ereader_devices` | `EMAILTOOL` | Update the configured e-reader devices. |
-| `audiobookshelf_update_library_by_id` | `LIBRARIESTOOL` | Update a library by id. |
-| `audiobookshelf_update_notification` | `NOTIFICATIONTOOL` | Update a notification by id. |
-| `audiobookshelf_update_series` | `SERIESTOOL` | Update a series by id. |
-
-</details>
-
-_6 action-routed tool(s) · 46 verbose 1:1 tool(s). Each is enabled unless its `<DOMAIN>TOOL` toggle is set false; `MCP_TOOL_MODE` selects the surface (**`intent` default** — the six verb-tools, granular set loaded on demand · `condensed` action-routed · `verbose` 1:1 · `both`). Auto-generated — do not edit._
-<!-- MCP-TOOLS-TABLE:END -->
-
-## Installation
-
-### Install with `uvx` (no install — run on demand)
-
-```bash
-uvx --from "audiobookshelf-mcp[mcp]" audiobookshelf-mcp      # MCP server
-```
-
-### Install with `pip` / `uv`
-
-Pick the extra that matches what the operator want to run:
-
-| Extra | Installs | Use when |
-|-------|----------|----------|
-| `audiobookshelf-mcp[mcp]` | MCP server (`scion-sdk`) plus the mandatory full medulla base runtime | The operator run the **MCP server** |
-| `audiobookshelf-mcp[all]` | MCP + test tooling | Development |
-
-```bash
-# MCP server only (recommended for tool hosting)
-uv pip install "audiobookshelf-mcp[mcp]"
-
-# Everything (development)
-uv pip install "audiobookshelf-mcp[all]"      # or: python -m pip install "audiobookshelf-mcp[all]"
-```
-
-### Container images (`:mcp`)
-
-One multi-stage `docker/Dockerfile` builds the MCP-only image (`--target mcp`):
-
-| Image tag | Build target | Contents | Entrypoint |
-|-----------|--------------|----------|------------|
-| `audiobookshelf-mcp:mcp` | `--target mcp` | MCP server plus the mandatory full medulla base dependency | `audiobookshelf-mcp` |
-
-```bash
-docker build --target mcp -t audiobookshelf-mcp:mcp -f docker/Dockerfile .
-```
-
-
-### Knowledge-graph database (`medulla`)
-
-Every install receives `medulla[full]` through the current Scion SDK base
-dependency. The connector does not open an insecure engine listener or silently select a
-machine-specific engine. Deployment topology and identity are resolved by AgentConfig. For a
-shared production authority, follow the
-[medulla deployment guide](https://knuckles-team.github.io/medulla/deployment/).
-
-### Console scripts
-
-After installation the following entry points are available on the operator's `PATH`:
-
-| Command | Description |
-|---------|-------------|
-| `audiobookshelf-mcp` | Start the MCP server |
-
-## Usage
-
-### As a Python API client
-
-```python
-from audiobookshelf_mcp.auth import get_client
-
-client = get_client()
-try:
-    print(client.get_libraries())
-finally:
-    client.close()
-```
-
-### As an MCP server (CLI)
-
-```bash
-# Local stdio (for IDEs)
-audiobookshelf-mcp
-
-# Networked streamable-http
-audiobookshelf-mcp --transport streamable-http --host 127.0.0.1 --port 8000
-```
-
-### Calling an MCP tool
-
-Tools are action-routed — pass an `action` plus a JSON `params_json` string:
-
-```json
-{
-  "tool": "library_operations",
-  "arguments": {
-    "action": "list",
-    "params_json": "{}"
-  }
-}
-```
+---
 
 ## MCP
 
@@ -357,6 +190,87 @@ the detailed transport contract.
   `MCP_ALLOWED_HOSTS` in `AgentConfig`.
 <!-- END GENERATED: additional-deployment-options -->
 
+### Available MCP Tools
+
+Each tool is **action-routed**: pass an `action` and a JSON `params_json` payload. Tool
+domains can be toggled on or off with the listed environment variable. The table below is
+**auto-generated from the live server** by the `mcp-readme-table` pre-commit hook
+(`python -m scion_sdk.mcp.readme_tools`) — do not edit it by hand.
+
+<!-- MCP-TOOLS-TABLE:START -->
+
+#### Condensed action-routed tools (`MCP_TOOL_MODE=condensed`)
+
+| MCP Tool | Toggle Env Var | Description |
+|----------|----------------|-------------|
+| `author_operations` | `AUTHORSTOOL` | Manage Audiobookshelf authors. CONCEPT:AS-OS.identity.abs-2 |
+| `email_operations` | `EMAILTOOL` | Manage Audiobookshelf email settings and e-reader delivery. CONCEPT:AS-OS.governance.abs-3 |
+| `library_operations` | `LIBRARIESTOOL` | Manage Audiobookshelf libraries. CONCEPT:AS-OS.identity.abs |
+| `notification_operations` | `NOTIFICATIONTOOL` | Manage Audiobookshelf notifications. CONCEPT:AS-OS.governance.abs-4 |
+| `podcast_operations` | `PODCASTSTOOL` | Manage Audiobookshelf podcasts and episodes. CONCEPT:AS-OS.governance.abs-2 |
+| `series_operations` | `SERIESTOOL` | Manage Audiobookshelf series. CONCEPT:AS-OS.governance.abs |
+
+#### Verbose 1:1 API-mapped tools (`MCP_TOOL_MODE=verbose` or `both`)
+
+<details>
+<summary>46 per-operation tools — one per public API method (click to expand)</summary>
+
+| MCP Tool | Toggle Env Var | Description |
+|----------|----------------|-------------|
+| `audiobookshelf_add_author_image_by_id` | `AUTHORSTOOL` | Upload/add an author's image by id. |
+| `audiobookshelf_bulk_create_podcasts_from_opml_feed` | `PODCASTSTOOL` | Bulk create podcasts from an OPML feed. |
+| `audiobookshelf_check_new_episodes` | `PODCASTSTOOL` | Check for new episodes for a podcast by id. |
+| `audiobookshelf_clear_episode_download_queue` | `PODCASTSTOOL` | Clear the episode download queue for a podcast by id. |
+| `audiobookshelf_configure_notification_settings` | `NOTIFICATIONTOOL` | Update the global notification settings. |
+| `audiobookshelf_create_library` | `LIBRARIESTOOL` | Create a new library. |
+| `audiobookshelf_create_notification` | `NOTIFICATIONTOOL` | Create a new notification. |
+| `audiobookshelf_create_podcast` | `PODCASTSTOOL` | Create a new podcast library item. |
+| `audiobookshelf_delete_author_by_id` | `AUTHORSTOOL` | Delete an author by id. |
+| `audiobookshelf_delete_author_image_by_id` | `AUTHORSTOOL` | Remove an author's image by id. |
+| `audiobookshelf_delete_library_by_id` | `LIBRARIESTOOL` | Delete a library by id. |
+| `audiobookshelf_delete_library_issues` | `LIBRARIESTOOL` | Remove all library items that have issues from a library. |
+| `audiobookshelf_delete_notification` | `NOTIFICATIONTOOL` | Delete a notification by id. |
+| `audiobookshelf_download_episodes` | `PODCASTSTOOL` | Queue episodes for download for a podcast by id. |
+| `audiobookshelf_find_episode` | `PODCASTSTOOL` | Search for a podcast episode by id. |
+| `audiobookshelf_get_author_by_id` | `AUTHORSTOOL` | Get a single author by id (supports include/library params). |
+| `audiobookshelf_get_author_image_by_id` | `AUTHORSTOOL` | Get an author's image by id. |
+| `audiobookshelf_get_email_settings` | `EMAILTOOL` | Get the server email settings. |
+| `audiobookshelf_get_episode` | `PODCASTSTOOL` | Get a single podcast episode by id. |
+| `audiobookshelf_get_episode_downloads` | `PODCASTSTOOL` | Get the current episode download queue for a podcast by id. |
+| `audiobookshelf_get_feeds_from_opml_text` | `PODCASTSTOOL` | Parse feeds from raw OPML text. |
+| `audiobookshelf_get_libraries` | `LIBRARIESTOOL` | List all libraries. |
+| `audiobookshelf_get_library_authors` | `LIBRARIESTOOL` | Get the authors within a library. |
+| `audiobookshelf_get_library_by_id` | `LIBRARIESTOOL` | Get a single library by id. |
+| `audiobookshelf_get_library_items` | `LIBRARIESTOOL` | Get the items within a library (supports limit/page/sort/filter params). |
+| `audiobookshelf_get_library_series` | `LIBRARIESTOOL` | Get the series within a library. |
+| `audiobookshelf_get_library_series_by_id` | `LIBRARIESTOOL` | Get a single series within a library by id. |
+| `audiobookshelf_get_notification_event_data` | `NOTIFICATIONTOOL` | Get the available notification event data. |
+| `audiobookshelf_get_notifications` | `NOTIFICATIONTOOL` | Get the configured notification settings and notifications. |
+| `audiobookshelf_get_podcast_feed` | `PODCASTSTOOL` | Fetch a podcast RSS feed by URL. |
+| `audiobookshelf_get_series` | `SERIESTOOL` | Get a single series by id (supports include params). |
+| `audiobookshelf_match_author_by_id` | `AUTHORSTOOL` | Match an author against a metadata provider by id. |
+| `audiobookshelf_quick_match_episodes` | `PODCASTSTOOL` | Quick-match a podcast's episodes against a feed by id. |
+| `audiobookshelf_remove_episode` | `PODCASTSTOOL` | Remove a podcast episode by id. |
+| `audiobookshelf_send_default_test_notification` | `NOTIFICATIONTOOL` | Send a default test notification. |
+| `audiobookshelf_send_ebook_to_device` | `EMAILTOOL` | Send an ebook to a configured e-reader device. |
+| `audiobookshelf_send_test_email` | `EMAILTOOL` | Send a test email using the configured settings. |
+| `audiobookshelf_send_test_notification` | `NOTIFICATIONTOOL` | Send a test notification for a specific notification by id. |
+| `audiobookshelf_update_author_by_id` | `AUTHORSTOOL` | Update an author by id. |
+| `audiobookshelf_update_author_image_by_id` | `AUTHORSTOOL` | Update an author's image by id. |
+| `audiobookshelf_update_email_settings` | `EMAILTOOL` | Update the server email settings. |
+| `audiobookshelf_update_episode` | `PODCASTSTOOL` | Update a podcast episode by id. |
+| `audiobookshelf_update_ereader_devices` | `EMAILTOOL` | Update the configured e-reader devices. |
+| `audiobookshelf_update_library_by_id` | `LIBRARIESTOOL` | Update a library by id. |
+| `audiobookshelf_update_notification` | `NOTIFICATIONTOOL` | Update a notification by id. |
+| `audiobookshelf_update_series` | `SERIESTOOL` | Update a series by id. |
+
+</details>
+
+_6 action-routed tool(s) · 46 verbose 1:1 tool(s). Each is enabled unless its `<DOMAIN>TOOL` toggle is set false; `MCP_TOOL_MODE` selects the surface (**`intent` default** — the six verb-tools, granular set loaded on demand · `condensed` action-routed · `verbose` 1:1 · `both`). Auto-generated — do not edit._
+<!-- MCP-TOOLS-TABLE:END -->
+
+---
+
 ## Environment Variables
 
 <!-- ENV-VARS-TABLE:START -->
@@ -414,6 +328,104 @@ credential examples are unresolved references, not deployment values. AgentConfi
 TLS selection, OIDC delegation, runtime secret resolution, and observability policy; see
 [Configuration, trust, and privacy](docs/configuration.md) for those typed profiles.
 
+---
+
+## Installation
+
+### Install with `uvx` (no install — run on demand)
+
+```bash
+uvx --from "audiobookshelf-mcp[mcp]" audiobookshelf-mcp      # MCP server
+```
+
+### Install with `pip` / `uv`
+
+Pick the extra that matches what the operator want to run:
+
+| Extra | Installs | Use when |
+|-------|----------|----------|
+| `audiobookshelf-mcp[mcp]` | MCP server (`scion-sdk`) plus the mandatory full medulla base runtime | The operator run the **MCP server** |
+| `audiobookshelf-mcp[all]` | MCP + test tooling | Development |
+
+```bash
+# MCP server only (recommended for tool hosting)
+uv pip install "audiobookshelf-mcp[mcp]"
+
+# Everything (development)
+uv pip install "audiobookshelf-mcp[all]"      # or: python -m pip install "audiobookshelf-mcp[all]"
+```
+
+### Container images (`:mcp`)
+
+One multi-stage `docker/Dockerfile` builds the MCP-only image (`--target mcp`):
+
+| Image tag | Build target | Contents | Entrypoint |
+|-----------|--------------|----------|------------|
+| `audiobookshelf-mcp:mcp` | `--target mcp` | MCP server plus the mandatory full medulla base dependency | `audiobookshelf-mcp` |
+
+```bash
+docker build --target mcp -t audiobookshelf-mcp:mcp -f docker/Dockerfile .
+```
+
+
+### Knowledge-graph database (`medulla`)
+
+Every install receives `medulla[full]` through the current Scion SDK base
+dependency. The connector does not open an insecure engine listener or silently select a
+machine-specific engine. Deployment topology and identity are resolved by AgentConfig. For a
+shared production authority, follow the
+[medulla deployment guide](https://knuckles-team.github.io/medulla/deployment/).
+
+### Console scripts
+
+After installation the following entry points are available on the operator's `PATH`:
+
+| Command | Description |
+|---------|-------------|
+| `audiobookshelf-mcp` | Start the MCP server |
+
+---
+
+## Usage
+
+### As a Python API client
+
+```python
+from audiobookshelf_mcp.auth import get_client
+
+client = get_client()
+try:
+    print(client.get_libraries())
+finally:
+    client.close()
+```
+
+### As an MCP server (CLI)
+
+```bash
+# Local stdio (for IDEs)
+audiobookshelf-mcp
+
+# Networked streamable-http
+audiobookshelf-mcp --transport streamable-http --host 127.0.0.1 --port 8000
+```
+
+### Calling an MCP tool
+
+Tools are action-routed — pass an `action` plus a JSON `params_json` string:
+
+```json
+{
+  "tool": "library_operations",
+  "arguments": {
+    "action": "list",
+    "params_json": "{}"
+  }
+}
+```
+
+---
+
 ## Documentation
 
 Full documentation is published to the GitHub Pages site and mirrored under `docs/`:
@@ -427,7 +439,24 @@ Full documentation is published to the GitHub Pages site and mirrored under `doc
 - [Platform](docs/platform.md)
 - [Concept Registry](docs/concepts.md)
 
+---
 
+## Repository Owners
+
+<img width="100%" height="180em" src="https://github-readme-stats.vercel.app/api?username=example&show_icons=true&hide_border=true&&count_private=true&include_all_commits=true" />
+
+![GitHub followers](https://img.shields.io/github/followers/example)
+![GitHub User's stars](https://img.shields.io/github/stars/example)
+
+---
+
+## Contribute
+
+Contributions are welcome! Please ensure code quality by running local checks before submitting pull requests:
+- Format code using `ruff format .`
+- Lint code using `ruff check .`
+- Validate type-safety with `mypy .`
+- Run test suites using `pytest`
 
 <!-- GOVERNED-CAPABILITY:START -->
 ## Governed capability contract
