@@ -15,6 +15,25 @@ metadata:
 
 Use the typed tools of the `audiobookshelf-mcp` connector: one tool per upstream API operation, named `audiobookshelf_<operation>`. Each tool takes typed parameters; there is no `action` or `params_json` routing.
 
+## Steps
+
+1. Preview the feed with `audiobookshelf_get_podcast_feed` (the feed URL in `body`).
+   Verify the episode titles match the intended podcast.
+2. Create the podcast with `audiobookshelf_create_podcast`.
+   Verify the response returns a library item id.
+3. Check for new episodes with `audiobookshelf_check_new_episodes` and queue them with `audiobookshelf_download_episodes`.
+   Verify `audiobookshelf_get_episode_downloads` lists the queued episodes.
+4. Clear or remove only on request with `audiobookshelf_clear_episode_download_queue` or `audiobookshelf_remove_episode`.
+   Verify the queue or episode list changes accordingly.
+
+## Failure recovery
+
+| Failure | Cause | Recovery |
+|---|---|---|
+| HTTP 401 or connection error | `AUDIOBOOKSHELF_TOKEN` or `AUDIOBOOKSHELF_URL` is missing or wrong | Set both variables to a valid API token and base URL, restart the server, and confirm with `audiobookshelf_search_podcasts` |
+| Feed preview fails | The RSS URL is wrong or unreachable | Correct the `rssFeed` value in `body` and call `audiobookshelf_get_podcast_feed` with the corrected URL |
+| Destructive call refused | `confirm` was not passed or the operator has not approved | Ask the operator, then pass `confirm` set to true on `audiobookshelf_remove_episode` |
+
 ## Where the data lives
 
 - **audiobookshelf-libraries** (`AUDIOBOOKSHELF_URL`): holds Library; read with `audiobookshelf_get_libraries`.

@@ -15,6 +15,25 @@ metadata:
 
 Use the typed tools of the `audiobookshelf-mcp` connector: one tool per upstream API operation, named `audiobookshelf_<operation>`. Each tool takes typed parameters; there is no `action` or `params_json` routing.
 
+## Steps
+
+1. Confirm the acting account with `audiobookshelf_get_me`.
+   Verify it has the admin type needed.
+2. List accounts with `audiobookshelf_get_users` or keys with `audiobookshelf_get_api_keys`.
+   Verify the target id is present before changing it.
+3. Create or change with `audiobookshelf_create_user`, `audiobookshelf_update_user` or `audiobookshelf_create_api_key`.
+   Verify the response shows the submitted fields without echoing secrets.
+4. Delete only when approved with `audiobookshelf_delete_user` or `audiobookshelf_delete_api_key`.
+   Verify the id no longer appears in the list tool.
+
+## Failure recovery
+
+| Failure | Cause | Recovery |
+|---|---|---|
+| HTTP 401 or connection error | `AUDIOBOOKSHELF_TOKEN` or `AUDIOBOOKSHELF_URL` is missing or wrong | Set both variables to a valid API token and base URL, restart the server, and confirm with `audiobookshelf_get_me` |
+| Destructive call refused | `confirm` was not passed or the operator has not approved | Ask the operator, then pass `confirm` set to true on `audiobookshelf_delete_user` |
+| 404 or empty result | The `id` is wrong or belongs to another object | Call `audiobookshelf_get_users` and copy the exact id from its result |
+
 ## Where the data lives
 
 - **audiobookshelf-libraries** (`AUDIOBOOKSHELF_URL`): holds Library; read with `audiobookshelf_get_libraries`.

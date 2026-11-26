@@ -15,6 +15,25 @@ metadata:
 
 Use the typed tools of the `audiobookshelf-mcp` connector: one tool per upstream API operation, named `audiobookshelf_<operation>`. Each tool takes typed parameters; there is no `action` or `params_json` routing.
 
+## Steps
+
+1. List libraries with `audiobookshelf_get_libraries`.
+   Verify the target library id and its media type appear.
+2. Read the library with `audiobookshelf_get_library_by_id`.
+   Verify its name and folders match the request.
+3. Create or change it with `audiobookshelf_create_library` or `audiobookshelf_update_library_by_id`.
+   Verify the response echoes the submitted fields.
+4. Refresh content with `audiobookshelf_scan_library`.
+   Verify `audiobookshelf_get_library_items` returns the expected items.
+
+## Failure recovery
+
+| Failure | Cause | Recovery |
+|---|---|---|
+| HTTP 401 or connection error | `AUDIOBOOKSHELF_TOKEN` or `AUDIOBOOKSHELF_URL` is missing or wrong | Set both variables to a valid API token and base URL, restart the server, and confirm with `audiobookshelf_get_libraries` |
+| 404 or empty result | The `id` is wrong or belongs to another object | Call `audiobookshelf_get_libraries` and copy the exact id from its result |
+| Destructive call refused | `confirm` was not passed or the operator has not approved | Ask the operator, then pass `confirm` set to true on `audiobookshelf_delete_library_by_id` |
+
 ## Where the data lives
 
 - **audiobookshelf-libraries** (`AUDIOBOOKSHELF_URL`): holds Library; read with `audiobookshelf_get_libraries`.

@@ -2,13 +2,7 @@
 name: audiobookshelf-kg-ingestion
 skill_type: skill
 description: >-
-  Natively push an Audiobookshelf collection into the medulla knowledge graph
-  via the audiobookshelf-mcp MCP server — libraries, audiobooks/podcasts, authors and
-  series become typed OWL nodes (:Library / :Book / :Podcast / :Author / :Series) with
-  authorship, series and containment links, and cover art can ride along as :MediaAsset
-  blobs. Use when the agent must make the catalog queryable/semantic in the KG. Do NOT
-  use for day-to-day browsing (audiobookshelf-library-catalog) or podcast maintenance
-  (audiobookshelf-podcast-manager).
+  Push an Audiobookshelf collection into the medulla knowledge graph as typed nodes (library, book, podcast, author, series) with authorship, series and containment links, plus optional cover art. Use when the catalog must be queryable in the KG. Do NOT use for day-to-day browsing (audiobookshelf-library-catalog) or podcast maintenance (audiobookshelf-podcast-manager).
 license: MIT
 tags: [audiobookshelf, knowledge-graph, ingestion, ontology, mcp]
 metadata:
@@ -16,6 +10,8 @@ metadata:
   version: '0.1.0'
 ---
 # Audiobookshelf Knowledge-Graph Ingestion
+
+Scope: Natively push an Audiobookshelf collection into the medulla knowledge graph via the audiobookshelf-mcp MCP server — libraries, audiobooks/podcasts, authors and series become typed OWL nodes (:Library / :Book / :Podcast / :Author / :Series) with authorship, series and containment links, and cover art can ride along as :MediaAsset blobs. Use when the agent must make the catalog queryable/semantic in the KG. Do NOT use for day-to-day browsing (audiobookshelf-library-catalog) or podcast maintenance (audiobookshelf-podcast-manager).
 
 Native "maximum ingestion" of an Audiobookshelf server into the ONE medulla
 knowledge graph. One MCP tool lists the collection via the real client and pushes it as
@@ -31,6 +27,25 @@ knowledge graph. One MCP tool lists the collection via the real client and pushe
 - Podcast feed / episode maintenance → `audiobookshelf-podcast-manager`.
 - Reading back from the KG → the graph query tools (`graph_query` / `graph_search`),
   not this connector.
+
+## Steps
+
+1. Check the sources with `audiobookshelf_get_libraries`.
+   Verify the libraries you intend to ingest are listed.
+2. Request the governed sync with `source_sync` for the connector's data sources.
+   Verify the response reports a started or completed sync.
+3. Inspect the result with `graph_query` for `:Library` and `:Book` nodes.
+   Verify node counts are non-zero and ids start with `audiobookshelf:library:`.
+4. Confirm cover art with `audiobookshelf_get_item_cover` for one item.
+   Verify a `:MediaAsset` exists with the item as `owner_id`.
+
+## Failure recovery
+
+| Failure | Cause | Recovery |
+|---|---|---|
+| HTTP 401 or connection error | `AUDIOBOOKSHELF_TOKEN` or `AUDIOBOOKSHELF_URL` is missing or wrong | Set both variables to a valid API token and base URL, restart the server, and confirm with `audiobookshelf_get_libraries` |
+| Ingest returns null | No medulla engine is reachable for writes, so the tool no-ops | Start or reach the engine, then request `source_sync` for the sources again after confirming with `graph_query` |
+| No nodes appear | The sync was never requested or the library list was empty | Confirm `audiobookshelf_get_libraries` returns libraries and request `source_sync` for the connector sources |
 
 ## Prerequisites & environment
 Connect via the `mcp-client` skill against the **`audiobookshelf-mcp`** MCP server. A
