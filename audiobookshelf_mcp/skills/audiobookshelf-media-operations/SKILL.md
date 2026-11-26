@@ -11,6 +11,25 @@ Audiobookshelf service. Treat listening collections, progress-adjacent metadata,
 private feed URLs, email devices, notification destinations, and account settings as
 sensitive.
 
+## Steps
+
+1. Establish the server and library with `audiobookshelf_get_libraries`.
+   Verify the library id and media type before any work.
+2. Read the target with `audiobookshelf_get_item` or `audiobookshelf_get_library_items` using a small `limit`.
+   Verify the object id comes from the result, not a display name.
+3. For podcasts, preview the approved feed with `audiobookshelf_get_podcast_feed`.
+   Verify the feed host is the approved one.
+4. Execute the approved action such as `audiobookshelf_update_item_media`.
+   Verify by reading the object back with `audiobookshelf_get_item`.
+
+## Failure recovery
+
+| Failure | Cause | Recovery |
+|---|---|---|
+| HTTP 401 or connection error | `AUDIOBOOKSHELF_TOKEN` or `AUDIOBOOKSHELF_URL` is missing or wrong | Set both variables to a valid API token and base URL, restart the server, and confirm with `audiobookshelf_get_libraries` |
+| Destructive call refused | `confirm` was not passed or the operator has not approved | Ask the operator, then pass `confirm` set to true on `audiobookshelf_delete_item` |
+| 404 or empty result | The `id` is wrong or belongs to another object | Call `audiobookshelf_get_library_items` and copy the exact id from its result |
+
 ## Select the typed domain
 
 Call the typed tool for the operation (one tool per API operation, prefix

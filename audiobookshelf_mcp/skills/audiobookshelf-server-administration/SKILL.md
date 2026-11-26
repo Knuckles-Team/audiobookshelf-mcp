@@ -16,6 +16,25 @@ metadata:
 
 Use the typed tools of the `audiobookshelf-mcp` connector: one tool per upstream API operation, named `audiobookshelf_<operation>`. Each tool takes typed parameters; there is no `action` or `params_json` routing.
 
+## Steps
+
+1. Check the server with `audiobookshelf_ping_server` and `audiobookshelf_get_server_status`.
+   Verify the status reports healthy.
+2. Back up before risky changes with `audiobookshelf_create_backup`.
+   Verify `audiobookshelf_get_backups` lists the new backup.
+3. Change configuration with `audiobookshelf_update_server_settings`, `audiobookshelf_update_email_settings` or `audiobookshelf_create_notification`.
+   Verify the matching read tool returns the new values.
+4. Test delivery with `audiobookshelf_send_test_email` or `audiobookshelf_send_test_notification`.
+   Verify the response reports success.
+
+## Failure recovery
+
+| Failure | Cause | Recovery |
+|---|---|---|
+| HTTP 401 or connection error | `AUDIOBOOKSHELF_TOKEN` or `AUDIOBOOKSHELF_URL` is missing or wrong | Set both variables to a valid API token and base URL, restart the server, and confirm with `audiobookshelf_ping_server` |
+| Destructive call refused | `confirm` was not passed or the operator has not approved | Ask the operator, then pass `confirm` set to true on `audiobookshelf_purge_cache` |
+| Test email fails | Email settings are incomplete | Read `audiobookshelf_get_email_settings`, fill the missing fields with `audiobookshelf_update_email_settings`, and send the test email |
+
 ## Where the data lives
 
 - **audiobookshelf-libraries** (`AUDIOBOOKSHELF_URL`): holds Library; read with `audiobookshelf_get_libraries`.

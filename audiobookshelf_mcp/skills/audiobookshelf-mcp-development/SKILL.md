@@ -38,6 +38,25 @@ owning spec row in the commit trailer.
 - One logical change per commit, with `Spec: <ID>` and the assisting agent
   trailer adjacent in the final paragraph.
 
+## Steps
+
+1. Find the owning spec row with `git grep -n "<term>" -- specs`.
+   Verify a row exists before writing code.
+2. Set up the pinned environment with `uv sync --locked`.
+   Verify the command exits cleanly.
+3. Implement the change with a test bound to the spec row, using `uv run pytest -q <test file>`.
+   Verify the test passes.
+4. Run the gate with `uvx pre-commit run --all-files`.
+   Verify every hook passes before committing.
+
+## Failure recovery
+
+| Failure | Cause | Recovery |
+|---|---|---|
+| Hook fails | A formatting, spelling or gate rule was violated | Read the hook output, fix the named file, and re-stage the explicit path before committing |
+| Spec row missing | The change has no owning requirement | Extend the existing spec in `specs/` with the row and cite it in the `Spec:` trailer |
+| Locked sync fails | `uv.lock` is out of date with `pyproject.toml` | Regenerate the lock with `uv lock` and commit the lock file with the dependency change |
+
 ## Setup and gates
 
 Use the pinned environment from `uv sync --locked`. Run the repository gate

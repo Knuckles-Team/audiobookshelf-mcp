@@ -2,12 +2,7 @@
 name: audiobookshelf-library-catalog
 skill_type: skill
 description: >-
-  Browse and manage Audiobookshelf libraries, their audiobook/ebook items and series
-  via the audiobookshelf-mcp MCP server — list libraries, page through library items
-  with sort/filter, read a single library or series, and curate metadata. Use when the
-  agent must explore a collection, find books by author/series, or fix item metadata.
-  Do NOT use for podcasts (audiobookshelf-podcast-manager) or pushing the catalog into
-  the knowledge graph (audiobookshelf-kg-ingestion).
+  Browse and manage Audiobookshelf libraries, audiobook/ebook items and series: list libraries, page items with sort/filter, read a library or series, curate metadata. Use to explore a collection, find books by author or series, or fix item metadata. Do NOT use for podcasts (audiobookshelf-podcast-manager) or KG ingestion (audiobookshelf-kg-ingestion).
 license: MIT
 tags: [audiobookshelf, library, audiobook, series, mcp]
 metadata:
@@ -15,6 +10,8 @@ metadata:
   version: '0.1.0'
 ---
 # Audiobookshelf Library Catalog
+
+Scope: Browse and manage Audiobookshelf libraries, their audiobook/ebook items and series via the audiobookshelf-mcp MCP server — list libraries, page through library items with sort/filter, read a single library or series, and curate metadata. Use when the agent must explore a collection, find books by author/series, or fix item metadata. Do NOT use for podcasts (audiobookshelf-podcast-manager) or pushing the catalog into the knowledge graph (audiobookshelf-kg-ingestion).
 
 Domain-typed access to Audiobookshelf **libraries**, **library items** (audiobooks /
 ebooks) and **series** through the `audiobookshelf-mcp` MCP server. Prefer these
@@ -32,6 +29,25 @@ return item-shaped records.
 - Author portrait/image upload or provider match -> `audiobookshelf_add_author_image_by_id`, `audiobookshelf_match_author_by_id`.
 - Pushing the catalog into the medulla → `audiobookshelf-kg-ingestion`.
 - Email / ereader / notification settings -> the `audiobookshelf_*_email_*` and `audiobookshelf_*_notification*` tools.
+
+## Steps
+
+1. List libraries with `audiobookshelf_get_libraries`.
+   Verify the library id and its `mediaType` are as expected.
+2. Page items with `audiobookshelf_get_library_items` using `limit`, `page` and `sort`.
+   Verify `total` and the page number in the response.
+3. Read series or one item with `audiobookshelf_get_library_series_by_id` or `audiobookshelf_get_item`.
+   Verify the title and series match the request.
+4. Update metadata only when asked with `audiobookshelf_update_series`.
+   Verify `audiobookshelf_get_series` shows the change.
+
+## Failure recovery
+
+| Failure | Cause | Recovery |
+|---|---|---|
+| HTTP 401 or connection error | `AUDIOBOOKSHELF_TOKEN` or `AUDIOBOOKSHELF_URL` is missing or wrong | Set both variables to a valid API token and base URL, restart the server, and confirm with `audiobookshelf_get_libraries` |
+| Empty items list | The library is a podcast library or the page is past the end | Check `mediaType` from `audiobookshelf_get_libraries` and use page 0 with a small `limit` |
+| 404 or empty result | The `id` is wrong or belongs to another object | Call `audiobookshelf_get_libraries` and copy the exact id from its result |
 
 ## Prerequisites & environment
 Connect via the `mcp-client` skill against the **`audiobookshelf-mcp`** MCP server.

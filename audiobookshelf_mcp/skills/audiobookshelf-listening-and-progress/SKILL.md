@@ -15,6 +15,25 @@ metadata:
 
 Use the typed tools of the `audiobookshelf-mcp` connector: one tool per upstream API operation, named `audiobookshelf_<operation>`. Each tool takes typed parameters; there is no `action` or `params_json` routing.
 
+## Steps
+
+1. List the current state with `audiobookshelf_get_my_items_in_progress` or `audiobookshelf_get_my_listening_sessions`.
+   Verify the item or session id you need appears.
+2. Record progress with `audiobookshelf_update_my_progress` or `audiobookshelf_update_my_episode_progress` using the library item id.
+   Verify the response carries the new progress value.
+3. Add or change a bookmark with `audiobookshelf_create_my_bookmark` or `audiobookshelf_update_my_bookmark`.
+   Verify the bookmark time and title in the response.
+4. Read statistics with `audiobookshelf_get_my_listening_stats` or `audiobookshelf_get_library_stats`.
+   Verify the totals are plausible for the period.
+
+## Failure recovery
+
+| Failure | Cause | Recovery |
+|---|---|---|
+| HTTP 401 or connection error | `AUDIOBOOKSHELF_TOKEN` or `AUDIOBOOKSHELF_URL` is missing or wrong | Set both variables to a valid API token and base URL, restart the server, and confirm with `audiobookshelf_get_open_sessions` |
+| 404 or empty result | The `library_item_id` is wrong or belongs to another object | Call `audiobookshelf_get_my_items_in_progress` and copy the exact id from its result |
+| Destructive call refused | `confirm` was not passed or the operator has not approved | Ask the operator, then pass `confirm` set to true on `audiobookshelf_delete_my_progress` |
+
 ## Where the data lives
 
 - **audiobookshelf-libraries** (`AUDIOBOOKSHELF_URL`): holds Library; read with `audiobookshelf_get_libraries`.
